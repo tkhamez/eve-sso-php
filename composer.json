@@ -1,0 +1,12 @@
+{
+    "name": "brave/sso-basics",
+    "type": "library",
+    "require": {
+        "league/oauth2-client": "^2.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Brave\\Sso\\Basics\\": "src"
+        }
+    }
+}
