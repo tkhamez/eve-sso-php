@@ -1,5 +1,5 @@
 {
-    "name": "brave/sso-basics",
+    "name": "bravecollective/sso-basics",
     "type": "library",
     "require": {
         "league/oauth2-client": "^2.2"
