@@ -29,9 +29,9 @@ class AuthenticationController {
     public function index(ServerRequestInterface $request, ResponseInterface $response, $arguments)
     {
         $serviceName = isset($this->container->get('settings')['brave.serviceName']) ? $this->container->get('settings')['brave.serviceName'] : 'Brave Service';
-        $authenticationProvider = $container->get(\Brave\Sso\Basics\AuthenticationProvider::class);
+        $authenticationProvider = $this->container->get(\Brave\Sso\Basics\AuthenticationProvider::class);
         $state = $authenticationProvider->generateState();
-        $sessionHandler = $container->get(\Brave\Sso\Basics\SessionHandlerInterface::class);
+        $sessionHandler = $this->container->get(\Brave\Sso\Basics\SessionHandlerInterface::class);
         $sessionHandler->set('ssoState', $state);
 
         $loginUrl = $authenticationProvider->buildLoginUrl($state);
@@ -58,8 +58,8 @@ class AuthenticationController {
         $code = $queryParameters['code'];
         $state = $queryParameters['state'];
 
-        $authenticationProvider = $container->get(\Brave\Sso\Basics\AuthenticationProvider::class);
-        $sessionHandler = $container->get(\Brave\Sso\Basics\SessionHandlerInterface::class);
+        $authenticationProvider = $this->container->get(\Brave\Sso\Basics\AuthenticationProvider::class);
+        $sessionHandler = $this->container->get(\Brave\Sso\Basics\SessionHandlerInterface::class);
         $sessionState = $sessionHandler->get('ssoState');
         $eveAuthentication = $authenticationProvider->validateAuthentication($state, $sessionState, $code);
         
