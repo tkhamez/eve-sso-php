@@ -3,7 +3,7 @@ namespace Brave\Sso\Basics;
 
 use League\OAuth2\Client\Token\AccessToken;
 
-class EveAuthentication {
+class EveAuthentication implements JsonSerialize {
     /**
      * @var string
      */
@@ -83,5 +83,19 @@ class EveAuthentication {
     public function getScopes()
     {
         return $this->scopes;
+    }
+
+    /**
+     * Contains core data for serialisastion
+     *
+     * @return array
+     */
+    public function jsonSerialize()
+    {
+        return [
+            'characterId' => $this->characterId,
+            'character_name' => $this->characterName,
+            'token' => $this->token
+        ];
     }
 }
