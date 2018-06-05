@@ -3,7 +3,7 @@ namespace Brave\Sso\Basics;
 
 use League\OAuth2\Client\Token\AccessToken;
 
-class EveAuthentication implements JsonSerialize {
+class EveAuthentication implements \JsonSerializable {
     /**
      * @var string
      */
