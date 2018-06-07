@@ -24,7 +24,7 @@ class AuthenticationController {
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
      * @param array $arguments
-     * @return void
+     * @return ResponseInterface
      */
     public function index(ServerRequestInterface $request, ResponseInterface $response, $arguments)
     {
@@ -38,13 +38,15 @@ class AuthenticationController {
 
         $templateCode = file_get_contents(__DIR__ . '/../html/sso_page.html');
         
-        echo str_replace([
+        $body = str_replace([
             '{{serviceName}}',
             '{{loginUrl}}'
         ], [
             $serviceName,
             $loginUrl
         ], $templateCode);
+
+        return $response->getBody()->write($body);
     }
 
     public function auth(ServerRequestInterface $request, ResponseInterface $response, $arguments) 
