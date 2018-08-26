@@ -3,7 +3,8 @@
     "type": "library",
     "require": {
         "league/oauth2-client": "^2.2",
-        "paragonie/random_compat": "^2.0"
+        "paragonie/random_compat": "^2.0",
+        "psr/container": "^1.0"
     },
     "autoload": {
         "psr-4": {
