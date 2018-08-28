@@ -13,6 +13,11 @@ class AuthenticationController {
      */
     protected $container;
 
+    /**
+     * @var string
+     */
+    protected $template = __DIR__ . '/../html/sso_page.html';
+
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
@@ -36,7 +41,7 @@ class AuthenticationController {
 
         $loginUrl = $authenticationProvider->buildLoginUrl($state);
 
-        $templateCode = file_get_contents(__DIR__ . '/../html/sso_page.html');
+        $templateCode = file_get_contents($this->template);
 
         $body = str_replace([
             '{{serviceName}}',
