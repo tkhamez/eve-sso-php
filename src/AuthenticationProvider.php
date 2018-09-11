@@ -57,7 +57,7 @@ class AuthenticationProvider {
         try {
             $resourceOwner = $this->sso->getResourceOwner($token);
         } catch (\Exception $e) {
-            $this->log->error($e->getMessage(), ['exception' => $e]);
+            throw new \UnexpectedValueException('Error obtaining resource owner.', 1526240015);
         }
 
         // verify result

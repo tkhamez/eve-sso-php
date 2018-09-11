@@ -13,13 +13,18 @@ class AuthenticationController {
      */
     protected $container;
 
+    /**
+     * @var string
+     */
+    protected $template = __DIR__ . '/../html/sso_page.html';
+
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
     }
 
     /**
-     * Undocumented function
+     * Show the login page.
      *
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
@@ -36,8 +41,8 @@ class AuthenticationController {
 
         $loginUrl = $authenticationProvider->buildLoginUrl($state);
 
-        $templateCode = file_get_contents(__DIR__ . '/../html/sso_page.html');
-        
+        $templateCode = file_get_contents($this->template);
+
         $body = str_replace([
             '{{serviceName}}',
             '{{loginUrl}}'
@@ -46,10 +51,21 @@ class AuthenticationController {
             $loginUrl
         ], $templateCode);
 
-        return $response->getBody()->write($body);
+        $response->getBody()->write($body);
+
+        return $response;
     }
 
-    public function auth(ServerRequestInterface $request, ResponseInterface $response, $arguments) 
+    /**
+     * EVE SSO callback.
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @param array $arguments
+     * @throws \Exception
+     * @return ResponseInterface
+     */
+    public function auth(ServerRequestInterface $request, ResponseInterface $response, $arguments)
     {
         $queryParameters = $request->getQueryParams();
 
@@ -64,7 +80,9 @@ class AuthenticationController {
         $sessionHandler = $this->container->get(\Brave\Sso\Basics\SessionHandlerInterface::class);
         $sessionState = $sessionHandler->get('ssoState');
         $eveAuthentication = $authenticationProvider->validateAuthentication($state, $sessionState, $code);
-        
+
         $sessionHandler->set('eveAuth', $eveAuthentication);
+
+        return $response;
     }
 }
