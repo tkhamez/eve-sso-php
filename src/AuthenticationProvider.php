@@ -3,7 +3,8 @@ namespace Brave\Sso\Basics;
 
 use League\OAuth2\Client\Provider\GenericProvider;
 
-class AuthenticationProvider {
+class AuthenticationProvider
+{
     /**
      * @var GenericProvider
      */
@@ -17,7 +18,7 @@ class AuthenticationProvider {
     private $scopes;
 
     /**
-     * 
+     *
      * @param GenericProvider $sso
      * @param array $scopes
      */
@@ -28,8 +29,19 @@ class AuthenticationProvider {
     }
 
     /**
+     * @param array $scopes
+     * @return $this
+     */
+    public function setScopes(array $scopes)
+    {
+        $this->scopes = $scopes;
+
+        return $this;
+    }
+
+    /**
      * Handle and validate OAuth response data
-     * 
+     *
      * @param string $requestState
      * @param string $sessionState
      * @param string $code
@@ -105,6 +117,7 @@ class AuthenticationProvider {
     /**
      * @param string $statePrefix
      * @return string
+     * @throws \Exception
      */
     public function generateState($statePrefix = '')
     {
