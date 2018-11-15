@@ -82,7 +82,7 @@ class AuthenticationProvider
             throw new \UnexpectedValueException('Error obtaining Character ID.', 1526239971);
         }
 
-        // verify scopes (user can have manipulated the SSO URL)
+        // verify scopes (user can manipulate the SSO login URL)
         $scopes = isset($verify['Scopes']) ? $verify['Scopes'] : '';
         $scopeList = explode(' ', $scopes);
 

@@ -86,7 +86,7 @@ class EveAuthentication implements \JsonSerializable {
     }
 
     /**
-     * Contains core data for serialisastion
+     * Contains core data for serialisation
      *
      * @return array
      */

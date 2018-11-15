@@ -1,14 +1,24 @@
 {
     "name": "bravecollective/sso-basics",
+    "description": "",
     "type": "library",
     "require": {
+        "ext-json": "*",
         "league/oauth2-client": "^2.2",
         "paragonie/random_compat": "^2.0",
         "psr/container": "^1.0"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^5.7"
+    },
     "autoload": {
         "psr-4": {
             "Brave\\Sso\\Basics\\": "src"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "5.6.0"
         }
     }
 }
