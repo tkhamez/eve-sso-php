@@ -15,7 +15,7 @@ class AuthenticationProvider
      *
      * @var array
      */
-    private $scopes;
+    private $scopes = [];
 
     /**
      *
@@ -25,7 +25,7 @@ class AuthenticationProvider
     public function __construct(GenericProvider $sso, array $scopes = [])
     {
         $this->sso = $sso;
-        $this->scopes = $scopes;
+        $this->setScopes($scopes);
     }
 
     /**
@@ -34,7 +34,11 @@ class AuthenticationProvider
      */
     public function setScopes(array $scopes)
     {
-        $this->scopes = $scopes;
+        foreach ($scopes as $scope) {
+            if ($scope !== '') {
+                $this->scopes[] = $scope;
+            }
+        }
 
         return $this;
     }
@@ -84,9 +88,9 @@ class AuthenticationProvider
 
         // verify scopes (user can manipulate the SSO login URL)
         $scopes = isset($verify['Scopes']) ? $verify['Scopes'] : '';
-        $scopeList = explode(' ', $scopes);
+        $scopeList = $scopes !== '' ? explode(' ', $scopes) : [];
 
-        if (!$this->verifyScopes($scopeList)) {
+        if (! $this->verifyScopes($scopeList)) {
             throw new \UnexpectedValueException('Required scopes do not match.', 1526239938);
         }
 
