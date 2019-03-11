@@ -28,15 +28,14 @@ class AuthenticationController {
      *
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
-     * @param array $arguments
      * @return ResponseInterface
      */
-    public function index(ServerRequestInterface $request, ResponseInterface $response, $arguments)
+    public function index(ServerRequestInterface $request, ResponseInterface $response)
     {
         $serviceName = isset($this->container->get('settings')['brave.serviceName']) ? $this->container->get('settings')['brave.serviceName'] : 'Brave Service';
-        $authenticationProvider = $this->container->get(\Brave\Sso\Basics\AuthenticationProvider::class);
+        $authenticationProvider = $this->container->get(AuthenticationProvider::class);
         $state = $authenticationProvider->generateState();
-        $sessionHandler = $this->container->get(\Brave\Sso\Basics\SessionHandlerInterface::class);
+        $sessionHandler = $this->container->get(SessionHandlerInterface::class);
         $sessionHandler->set('ssoState', $state);
 
         $loginUrl = $authenticationProvider->buildLoginUrl($state);
@@ -61,11 +60,10 @@ class AuthenticationController {
      *
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
-     * @param array $arguments
      * @throws \Exception
      * @return ResponseInterface
      */
-    public function auth(ServerRequestInterface $request, ResponseInterface $response, $arguments)
+    public function auth(ServerRequestInterface $request, ResponseInterface $response)
     {
         $queryParameters = $request->getQueryParams();
 
@@ -76,8 +74,8 @@ class AuthenticationController {
         $code = $queryParameters['code'];
         $state = $queryParameters['state'];
 
-        $authenticationProvider = $this->container->get(\Brave\Sso\Basics\AuthenticationProvider::class);
-        $sessionHandler = $this->container->get(\Brave\Sso\Basics\SessionHandlerInterface::class);
+        $authenticationProvider = $this->container->get(AuthenticationProvider::class);
+        $sessionHandler = $this->container->get(SessionHandlerInterface::class);
         $sessionState = $sessionHandler->get('ssoState');
         $eveAuthentication = $authenticationProvider->validateAuthentication($state, $sessionState, $code);
 

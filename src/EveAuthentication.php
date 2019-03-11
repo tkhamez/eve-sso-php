@@ -1,9 +1,10 @@
 <?php
 namespace Brave\Sso\Basics;
 
-use League\OAuth2\Client\Token\AccessToken;
+use League\OAuth2\Client\Token\ResourceOwnerAccessTokenInterface;
 
-class EveAuthentication implements \JsonSerializable {
+class EveAuthentication implements \JsonSerializable
+{
     /**
      * @var string
      */
@@ -25,7 +26,7 @@ class EveAuthentication implements \JsonSerializable {
     private $scopes;
 
     /**
-     * @var AccessToken
+     * @var ResourceOwnerAccessTokenInterface
      */
     private $token;
 
@@ -33,10 +34,10 @@ class EveAuthentication implements \JsonSerializable {
      * @param string $characterId
      * @param string $characterName
      * @param string $characterOwnerHash
-     * @param AccessToken $token
+     * @param ResourceOwnerAccessTokenInterface $token
      * @param array $scopes
      */
-    public function __construct($characterId, $characterName, $characterOwnerHash, AccessToken $token, array $scopes = [])
+    public function __construct($characterId, $characterName, $characterOwnerHash, ResourceOwnerAccessTokenInterface $token, array $scopes = [])
     {
         $this->characterId = $characterId;
         $this->characterName = $characterName;
@@ -70,7 +71,7 @@ class EveAuthentication implements \JsonSerializable {
     }
 
     /**
-     * @return AccessToken
+     * @return ResourceOwnerAccessTokenInterface
      */
     public function getToken()
     {
