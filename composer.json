@@ -2,6 +2,7 @@
     "name": "bravecollective/sso-basics",
     "description": "",
     "type": "library",
+    "license": "MIT",
     "require": {
         "ext-json": "*",
         "league/oauth2-client": "^2.2",
