@@ -1,6 +1,16 @@
 <?php
 namespace Brave\Sso\Basics;
 
+use GuzzleHttp\Exception\GuzzleException;
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\Core\JWK;
+use Jose\Component\Core\JWKSet;
+use Jose\Component\Signature\Algorithm\ES256;
+use Jose\Component\Signature\Algorithm\HS256;
+use Jose\Component\Signature\Algorithm\RS256;
+use Jose\Component\Signature\JWSVerifier;
+use Jose\Component\Signature\Serializer\CompactSerializer;
+use Jose\Component\Signature\Serializer\JWSSerializerManager;
 use League\OAuth2\Client\Provider\GenericProvider;
 
 class AuthenticationProvider
@@ -18,6 +28,11 @@ class AuthenticationProvider
     private $scopes = [];
 
     /**
+     * @var string
+     */
+    private $keySetUri;
+
+    /**
      *
      * @param GenericProvider $sso
      * @param array $scopes
@@ -26,6 +41,14 @@ class AuthenticationProvider
     {
         $this->sso = $sso;
         $this->setScopes($scopes);
+    }
+
+    /**
+     * @return GenericProvider
+     */
+    public function getProvider()
+    {
+        return $this->sso;
     }
 
     /**
@@ -39,6 +62,20 @@ class AuthenticationProvider
                 $this->scopes[] = $scope;
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * URL of the JWT key set, required for v2 SSO.
+     *
+     * @param string $keySetUrl
+     * @return $this
+     * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
+     */
+    public function setKeySetUri($keySetUrl)
+    {
+        $this->keySetUri = $keySetUrl;
 
         return $this;
     }
@@ -104,6 +141,47 @@ class AuthenticationProvider
     }
 
     /**
+     * Handle and validate OAuth response data from SSO v2.
+     *
+     * @param $requestState
+     * @param $sessionState
+     * @param string $code
+     * @return EveAuthentication
+     * @throws \UnexpectedValueException
+     */
+    public function validateAuthenticationV2($requestState, $sessionState, $code = '')
+    {
+        // check OAuth state parameter
+        if ($requestState !== $sessionState) {
+            throw new \UnexpectedValueException('OAuth state mismatch.', 1526220012);
+        }
+
+        // get token
+        try {
+            $token = $this->sso->getAccessToken('authorization_code', ['code' => $code]);
+        } catch (\Exception $e) {
+            throw new \UnexpectedValueException('Error when requesting the token.', 1526220013);
+        }
+
+        // parse and verify token
+        $data = $this->validateJWToken($token->getToken());
+
+        // verify scopes (user can manipulate the SSO login URL)
+        $scopeList = isset($data->scp) ? (is_string($data->scp) ? [$data->scp] : $data->scp) : [];
+        if (! $this->verifyScopes($scopeList)) {
+            throw new \UnexpectedValueException('Required scopes do not match.', 1526220014);
+        }
+
+        return new EveAuthentication(
+            (int) str_replace('CHARACTER:EVE:', '', $data->sub),
+            $data->name,
+            $data->owner,
+            $token,
+            $scopeList
+        );
+    }
+
+    /**
      * @param string $state
      * @return string
      */
@@ -141,5 +219,75 @@ class AuthenticationProvider
             return false;
         }
         return true;
+    }
+
+    /**
+     * @param string $token
+     * @return \stdClass
+     * @throws \UnexpectedValueException
+     */
+    private function validateJWToken($token)
+    {
+        $serializerManager = JWSSerializerManager::create([new CompactSerializer()]);
+        try {
+            $jws = $serializerManager->unserialize($token);
+        } catch (\Exception $e) {
+            throw new \UnexpectedValueException('Could not parse token.', 1526220021);
+        }
+
+        // parse data
+        $payload = json_decode($jws->getPayload());
+        if ($payload === null || ! isset($payload->sub) || ! isset($payload->name) || ! isset($payload->owner)) {
+            throw new \UnexpectedValueException('Invalid token data.', 1526220022);
+        }
+
+        // verify issuer
+        if (strpos($this->sso->getBaseAuthorizationUrl(), $payload->iss) === false) {
+            throw new \UnexpectedValueException('Token issuer does not match.', 1526220023);
+        }
+
+        // verify signature
+        $keys = [];
+        foreach ($this->getPublicKeys() as $key) {
+            try {
+                $keys[] = new JWK($key);
+            } catch(\InvalidArgumentException $e) {
+                throw new \UnexpectedValueException('Invalid public key.', 1526220024);
+            }
+        }
+        $algorithmManager = AlgorithmManager::create([new RS256(), new ES256(), new HS256()]);
+        $jwsVerifier = new JWSVerifier($algorithmManager);
+        try {
+            $valid = $jwsVerifier->verifyWithKeySet($jws, new JWKSet($keys), 0);
+        } catch(\InvalidArgumentException $e) {
+            throw new \UnexpectedValueException('Could not verify token signature.', 1526220025);
+        }
+        if (! $valid) {
+            throw new \UnexpectedValueException('Invalid token signature.', 1526220026);
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @return array
+     * @throws \UnexpectedValueException
+     */
+    private function getPublicKeys()
+    {
+        $client = $this->sso->getHttpClient();
+
+        try {
+            $response = $client->request('GET', $this->keySetUri);
+        } catch (GuzzleException $e) {
+            throw new \UnexpectedValueException('Failed to get public keys.', 1526220031);
+        }
+
+        $keySet = json_decode($response->getBody()->getContents(), true);
+        if ($keySet === null) {
+            throw new \UnexpectedValueException('Failed to parse public keys.', 1526220032);
+        }
+
+        return $keySet['keys'];
     }
 }

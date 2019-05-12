@@ -19,3 +19,16 @@ To install the bindings via [Composer](http://getcomposer.org/), add the followi
 ```
 
 Then run `composer install`
+
+## Changelog
+
+### 2.0.0 (unreleased)
+
+- Support for EVE SSO v2
+- Needs PHP 7.1+
+- Needs ext-gmp PHP extension
+
+### 1.0.0
+
+- First stable release with support for EVE SSO v1.
+- Needs PHP 5.6+
