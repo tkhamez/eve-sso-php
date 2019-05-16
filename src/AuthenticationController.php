@@ -32,7 +32,8 @@ class AuthenticationController {
      */
     public function index(ServerRequestInterface $request, ResponseInterface $response)
     {
-        $serviceName = isset($this->container->get('settings')['brave.serviceName']) ? $this->container->get('settings')['brave.serviceName'] : 'Brave Service';
+        $serviceName = isset($this->container->get('settings')['brave.serviceName']) ?
+            $this->container->get('settings')['brave.serviceName'] : 'Brave Service';
         $authenticationProvider = $this->container->get(AuthenticationProvider::class);
         $state = $authenticationProvider->generateState();
         $sessionHandler = $this->container->get(SessionHandlerInterface::class);
@@ -60,10 +61,11 @@ class AuthenticationController {
      *
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
+     * @param bool $ssoV2
      * @throws \Exception
      * @return ResponseInterface
      */
-    public function auth(ServerRequestInterface $request, ResponseInterface $response)
+    public function auth(ServerRequestInterface $request, ResponseInterface $response, $ssoV2 = false)
     {
         $queryParameters = $request->getQueryParams();
 
@@ -74,10 +76,15 @@ class AuthenticationController {
         $code = $queryParameters['code'];
         $state = $queryParameters['state'];
 
+        /* @var $authenticationProvider AuthenticationProvider */
         $authenticationProvider = $this->container->get(AuthenticationProvider::class);
         $sessionHandler = $this->container->get(SessionHandlerInterface::class);
         $sessionState = $sessionHandler->get('ssoState');
-        $eveAuthentication = $authenticationProvider->validateAuthentication($state, $sessionState, $code);
+        if ($ssoV2) {
+            $eveAuthentication = $authenticationProvider->validateAuthenticationV2($state, $sessionState, $code);
+        } else {
+            $eveAuthentication = $authenticationProvider->validateAuthentication($state, $sessionState, $code);
+        }
 
         $sessionHandler->set('eveAuth', $eveAuthentication);
 

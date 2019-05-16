@@ -36,11 +36,14 @@ class AuthenticationProvider
      *
      * @param GenericProvider $sso
      * @param array $scopes
+     * @param string $keySetUrl URL of the JWT key set, required for v2 SSO.
+     * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
      */
-    public function __construct(GenericProvider $sso, array $scopes = [])
+    public function __construct(GenericProvider $sso, array $scopes = [], $keySetUrl = null)
     {
         $this->sso = $sso;
         $this->setScopes($scopes);
+        $this->keySetUri = $keySetUrl;
     }
 
     /**
@@ -62,20 +65,6 @@ class AuthenticationProvider
                 $this->scopes[] = $scope;
             }
         }
-
-        return $this;
-    }
-
-    /**
-     * URL of the JWT key set, required for v2 SSO.
-     *
-     * @param string $keySetUrl
-     * @return $this
-     * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
-     */
-    public function setKeySetUri($keySetUrl)
-    {
-        $this->keySetUri = $keySetUrl;
 
         return $this;
     }
