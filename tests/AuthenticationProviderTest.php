@@ -33,8 +33,7 @@ class AuthenticationProviderTest extends TestCase
             'urlResourceOwnerDetails' => 'http://localhost/owner',
         ]);
         $sso->setHttpClient($this->client);
-        $this->authenticationProvider = new AuthenticationProvider($sso);
-        $this->authenticationProvider->setKeySetUri('http://localhost/jwks');
+        $this->authenticationProvider = new AuthenticationProvider($sso, [], 'http://localhost/jwks');
     }
 
     public function testValidateAuthenticationStateException()
