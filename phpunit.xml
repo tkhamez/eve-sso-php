@@ -1,8 +1,12 @@
-<!DOCTYPE xml>
 <phpunit>
     <testsuites>
-        <testsuite>
+        <testsuite name="sso-basics">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory>src</directory>
+        </whitelist>
+    </filter>
 </phpunit>

@@ -1,4 +1,5 @@
-<?php
+<?php declare(strict_types=1);
+
 namespace Brave\Sso\Basics;
 
 use GuzzleHttp\Exception\GuzzleException;
@@ -28,7 +29,7 @@ class AuthenticationProvider
     private $scopes = [];
 
     /**
-     * @var string
+     * @var string|null
      */
     private $keySetUri;
 
@@ -36,7 +37,7 @@ class AuthenticationProvider
      *
      * @param GenericProvider $sso
      * @param array $scopes
-     * @param string $keySetUrl URL of the JWT key set, required for v2 SSO.
+     * @param string $keySetUrl URL of the JWT key set, required for SSO v2.
      * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
      */
     public function __construct(GenericProvider $sso, array $scopes = [], $keySetUrl = null)

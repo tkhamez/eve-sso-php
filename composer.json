@@ -5,6 +5,7 @@
     "license": "MIT",
     "require": {
         "ext-json": "*",
+        "guzzlehttp/guzzle": "^6.3",
         "league/oauth2-client": "^2.2",
         "paragonie/random_compat": "^2|^9.99",
         "psr/container": "^1.0",
@@ -12,12 +13,17 @@
         "web-token/jwt-signature": "^1.3"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.7"
+        "phpunit/phpunit": "^7.5"
     },
     "autoload": {
         "psr-4": {
-            "Brave\\Sso\\Basics\\": "src"
+            "Brave\\Sso\\Basics\\": "src",
+            "Test\\": "tests"
         }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:coverage": "phpunit --coverage-html coverage"
     },
     "config": {
         "platform": {
