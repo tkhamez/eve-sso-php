@@ -22,14 +22,14 @@ Then run `composer install`
 
 ## Changelog
 
-### 2.0.0 (unreleased)
+### 2.0.0
 
 - Support for EVE SSO v2
 - Needs PHP 7.1+
-- Needs ext-gmp PHP extension
+- Needs gmp and mbstring PHP extensions
 - EveAuthentication class: The $token type hint has been changed from `ResourceOwnerAccessTokenInterface`
   to `AccessTokenInterface` because the ID is not added anyway and `League\OAuth2\Client\Provider::getAccessToken()`,
-  from which this object comes, declares the same return type.
+  from which this object originates, declares the same return type.
 
 ### 1.0.0
 

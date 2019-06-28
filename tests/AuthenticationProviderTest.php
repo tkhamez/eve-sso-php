@@ -42,6 +42,9 @@ class AuthenticationProviderTest extends TestCase
         $this->assertInstanceOf(GenericProvider::class, $this->authenticationProvider->getProvider());
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testGenerateState()
     {
         $this->assertRegExp('/prefix[a-f0-9]{32}/i', $this->authenticationProvider->generateState('prefix'));
