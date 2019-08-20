@@ -160,8 +160,8 @@ class AuthenticationProvider
 
         return new EveAuthentication(
             (int) str_replace('CHARACTER:EVE:', '', $data->sub),
-            $data->name,
-            $data->owner,
+            $data->name ?? '',
+            $data->owner ?? '',
             $token,
             $scopeList
         );
@@ -223,7 +223,7 @@ class AuthenticationProvider
 
         // parse data
         $payload = json_decode($jws->getPayload());
-        if ($payload === null || ! isset($payload->sub) || ! isset($payload->name) || ! isset($payload->owner)) {
+        if ($payload === null || ! isset($payload->sub)) {
             throw new \UnexpectedValueException('Invalid token data.', 1526220022);
         }
 

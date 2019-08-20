@@ -386,15 +386,15 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws \Exception
      */
-    private function createTokenAndKeySet($issuer = 'localhost', $name = 'Name'): array
+    private function createTokenAndKeySet($issuer = 'localhost', $sub = 'CHARACTER:EVE:123'): array
     {
         $jwk = JWKFactory::createRSAKey(2048, ['alg' => 'RS256', 'use' => 'sig']);
         $algorithmManager = AlgorithmManager::create([new RS256()]);
         $jwsBuilder = new JWSBuilder(null, $algorithmManager);
         $payload = (string) json_encode([
             'scp' => ['scope1', 'scope2'],
-            'sub' => 'CHARACTER:EVE:123',
-            'name' => $name,
+            'sub' => $sub,
+            'name' => 'Name',
             'owner' => 'hash',
             'exp' => time() + 3600,
             'iss' => $issuer,
