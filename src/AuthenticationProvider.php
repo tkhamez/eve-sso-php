@@ -105,11 +105,7 @@ class AuthenticationProvider
 
         // verify result
         $verify = $resourceOwner !== null ? $resourceOwner->toArray() : null;
-        if (! is_array($verify) ||
-            ! isset($verify['CharacterID']) ||
-            ! isset($verify['CharacterName']) ||
-            ! isset($verify['CharacterOwnerHash'])
-        ) {
+        if (! is_array($verify) || ! isset($verify['CharacterID'])) {
             throw new \UnexpectedValueException('Error obtaining Character ID.', 1526239971);
         }
 
@@ -123,8 +119,8 @@ class AuthenticationProvider
 
         return new EveAuthentication(
             $verify['CharacterID'],
-            $verify['CharacterName'],
-            $verify['CharacterOwnerHash'],
+            isset($verify['CharacterName']) ? $verify['CharacterName'] : '',
+            isset($verify['CharacterOwnerHash']) ? $verify['CharacterOwnerHash'] : '',
             $token,
             $scopeList
         );
