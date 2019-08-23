@@ -5,25 +5,16 @@ Some super basic package for supporting EVE SSO v1 and v2.
 
 ## Install
 
-To install the bindings via [Composer](http://getcomposer.org/), add the following to `composer.json`:
+To install the bindings via [Composer](http://getcomposer.org/), execute:
 
 ```
-{
-    "repositories": [
-        { "type": "git", "url": "https://github.com/bravecollective/sso-basics.git" }
-    ],
-    "require": {
-        "bravecollective/sso-basics": "^2.0.0"
-    }
-}
+composer require bravecollective/sso-basics
 ```
-
-Then run `composer install`
 
 ### SSO Login page
 
 To use the exemplary SSO login page, you need [bravecollective/web-ui](https://github.com/bravecollective/web-ui), 
-which contains the required CSS.
+which contains the required CSS and images.
 
 ## Changelog
 

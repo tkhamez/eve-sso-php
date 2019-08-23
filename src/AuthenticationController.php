@@ -5,7 +5,11 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Container\ContainerInterface;
 
-class AuthenticationController {
+/**
+ * Example authentication controller
+ */
+class AuthenticationController
+{
     /**
      * ContainerInterface
      *
