@@ -20,6 +20,11 @@ To install the bindings via [Composer](http://getcomposer.org/), add the followi
 
 Then run `composer install`
 
+### SSO Login page
+
+To use the exemplary SSO login page, you need [bravecollective/web-ui](https://github.com/bravecollective/web-ui), 
+which contains the required CSS.
+
 ## Changelog
 
 ### 2.0.0
