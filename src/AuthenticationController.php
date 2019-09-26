@@ -90,6 +90,7 @@ class AuthenticationController
             $eveAuthentication = $authenticationProvider->validateAuthentication($state, $sessionState, $code);
         }
 
+        $sessionHandler->set('ssoState', null);
         $sessionHandler->set('eveAuth', $eveAuthentication);
 
         return $response;
