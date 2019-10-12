@@ -1,17 +1,16 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Test;
 
 use Brave\Sso\Basics\AuthenticationProvider;
 use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\Psr7\Response;
-use Jose\Component\Core\AlgorithmManager;
-use Jose\Component\KeyManagement\JWKFactory;
-use Jose\Component\Signature\Algorithm\RS256;
-use Jose\Component\Signature\JWSBuilder;
-use Jose\Component\Signature\Serializer\CompactSerializer;
 use League\OAuth2\Client\Provider\GenericProvider;
+use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
 class AuthenticationProviderTest extends TestCase
 {
@@ -37,6 +36,10 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider = new AuthenticationProvider($sso, [], 'http://localhost/jwks');
     }
 
+    /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     */
     public function testGetProvider()
     {
         $this->assertInstanceOf(GenericProvider::class, $this->authenticationProvider->getProvider());
@@ -50,6 +53,9 @@ class AuthenticationProviderTest extends TestCase
         $this->assertRegExp('/prefix[a-f0-9]{32}/i', $this->authenticationProvider->generateState('prefix'));
     }
 
+    /**
+     * @throws \UnexpectedValueException
+     */
     public function testValidateAuthenticationStateException()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -59,6 +65,9 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider->validateAuthentication('state1', 'state2');
     }
 
+    /**
+     * @throws \UnexpectedValueException
+     */
     public function testValidateAuthenticationTokenException()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -70,6 +79,9 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider->validateAuthentication('state', 'state', 'code');
     }
 
+    /**
+     * @throws \UnexpectedValueException
+     */
     public function testValidateAuthenticationResourceOwnerException()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -84,6 +96,9 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider->validateAuthentication('state', 'state', 'code');
     }
 
+    /**
+     * @throws \UnexpectedValueException
+     */
     public function testValidateAuthenticationCharacterException()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -98,6 +113,9 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider->validateAuthentication('state', 'state', 'code');
     }
 
+    /**
+     * @throws \UnexpectedValueException
+     */
     public function testValidateAuthenticationScopeExceptionWrongScope()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -118,6 +136,9 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider->validateAuthentication('state', 'state', 'code');
     }
 
+    /**
+     * @throws \UnexpectedValueException
+     */
     public function testValidateAuthenticationScopeExceptionMissingScope()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -138,6 +159,9 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider->validateAuthentication('state', 'state', 'code');
     }
 
+    /**
+     * @throws \UnexpectedValueException
+     */
     public function testValidateAuthenticationScopeExceptionAdditionalScope()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -158,6 +182,11 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider->validateAuthentication('state', 'state', 'code');
     }
 
+    /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws \UnexpectedValueException
+     */
     public function testValidateAuthenticationSuccess()
     {
         $this->client->setResponse(
@@ -180,12 +209,19 @@ class AuthenticationProviderTest extends TestCase
         $this->assertSame('token', $result->getToken()->getToken());
     }
 
+    /**
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     */
     public function testBuildLoginUrl()
     {
         $url = $this->authenticationProvider->buildLoginUrl('state123');
         $this->assertContains('state=state123', $url);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testValidateAuthenticationV2ExceptionWrongSessionState()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -195,6 +231,9 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider->validateAuthenticationV2('state1', 'state2', 'code');
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testValidateAuthenticationV2ExceptionGetTokenError()
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -215,39 +254,13 @@ class AuthenticationProviderTest extends TestCase
         $this->expectExceptionCode(1526220014);
         $this->expectExceptionMessage('Required scopes do not match.');
 
-        list($token, $keySet) = $this->createTokenAndKeySet();
+        list($token, $keySet) = TestHelper::createTokenAndKeySet();
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
             new Response(200, [], '{"keys": ' . json_encode($keySet) . '}')
         );
 
         $this->authenticationProvider->setScopes(['scope1']);
-        $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
-    }
-
-    public function testValidateAuthenticationV2ExceptionValidateJWTokenParseError()
-    {
-        $this->expectException(\UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220021);
-        $this->expectExceptionMessage('Could not parse token.');
-
-        $this->client->setResponse(new Response(200, [], '{"access_token": "string"}'));
-
-        $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function testValidateAuthenticationV2ExceptionValidateJWTokenInvalidData()
-    {
-        $this->expectException(\UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220022);
-        $this->expectExceptionMessage('Invalid token data.');
-
-        list($token) = $this->createTokenAndKeySet('localhost', null);
-        $this->client->setResponse(new Response(200, [], '{"access_token": ' . json_encode($token). '}'));
-
         $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
     }
 
@@ -260,64 +273,8 @@ class AuthenticationProviderTest extends TestCase
         $this->expectExceptionCode(1526220023);
         $this->expectExceptionMessage('Token issuer does not match.');
 
-        list($token) = $this->createTokenAndKeySet('invalid.host');
+        list($token) = TestHelper::createTokenAndKeySet('invalid.host');
         $this->client->setResponse(new Response(200, [], '{"access_token": ' . json_encode($token). '}'));
-
-        $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function testValidateAuthenticationV2ExceptionValidateJWTokenInvalidPublicKey()
-    {
-        $this->expectException(\UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220024);
-        $this->expectExceptionMessage('Invalid public key.');
-
-        list($token, $keySet) = $this->createTokenAndKeySet();
-        unset($keySet[0]['kty']);
-        $this->client->setResponse(
-            new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
-            new Response(200, [], '{"keys": ' . json_encode($keySet) . '}')
-        );
-
-        $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function testValidateAuthenticationV2ExceptionValidateJWTokenSignatureError()
-    {
-        $this->expectException(\UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220025);
-        $this->expectExceptionMessage('Could not verify token signature.');
-
-        list($token) = $this->createTokenAndKeySet();
-        $this->client->setResponse(
-            new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
-            new Response(200, [], '{"keys": ' . json_encode([]) . '}')
-        );
-
-        $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function testValidateAuthenticationV2ExceptionValidateJWTokenSignatureInvalid()
-    {
-        $this->expectException(\UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220026);
-        $this->expectExceptionMessage('Invalid token signature.');
-
-        list($token, $keySet) = $this->createTokenAndKeySet();
-        $keySet[0]['alg'] = 'unknown';
-        $this->client->setResponse(
-            new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
-            new Response(200, [], '{"keys": ' . json_encode($keySet) . '}')
-        );
 
         $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
     }
@@ -331,7 +288,7 @@ class AuthenticationProviderTest extends TestCase
         $this->expectExceptionCode(1526220031);
         $this->expectExceptionMessage('Failed to get public keys.');
 
-        list($token) = $this->createTokenAndKeySet();
+        list($token) = TestHelper::createTokenAndKeySet();
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
             new TransferException('Failed to parse public keys.', 1526220032)
@@ -349,7 +306,7 @@ class AuthenticationProviderTest extends TestCase
         $this->expectExceptionCode(1526220032);
         $this->expectExceptionMessage('Failed to parse public keys.');
 
-        list($token) = $this->createTokenAndKeySet();
+        list($token) = TestHelper::createTokenAndKeySet();
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
             new Response(200, [], 'no json')
@@ -363,7 +320,7 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2Success()
     {
-        list($token, $keySet) = $this->createTokenAndKeySet();
+        list($token, $keySet) = TestHelper::createTokenAndKeySet();
 
         // set responses
         $this->client->setResponse(
@@ -381,32 +338,5 @@ class AuthenticationProviderTest extends TestCase
         $this->assertSame('hash', $result->getCharacterOwnerHash());
         $this->assertSame(['scope1', 'scope2'], $result->getScopes());
         $this->assertSame($token, $result->getToken()->getToken());
-    }
-
-    /**
-     * @throws \Exception
-     */
-    private function createTokenAndKeySet($issuer = 'localhost', $sub = 'CHARACTER:EVE:123'): array
-    {
-        $jwk = JWKFactory::createRSAKey(2048, ['alg' => 'RS256', 'use' => 'sig']);
-        $algorithmManager = AlgorithmManager::create([new RS256()]);
-        $jwsBuilder = new JWSBuilder(null, $algorithmManager);
-        $payload = (string) json_encode([
-            'scp' => ['scope1', 'scope2'],
-            'sub' => $sub,
-            'name' => 'Name',
-            'owner' => 'hash',
-            'exp' => time() + 3600,
-            'iss' => $issuer,
-        ]);
-        $jws = $jwsBuilder
-            ->create()
-            ->withPayload($payload)
-            ->addSignature($jwk, ['alg' => $jwk->get('alg')])
-            ->build();
-        $token = (new CompactSerializer())->serialize($jws);
-        $keySet = [$jwk->toPublic()->jsonSerialize()];
-
-        return [$token, $keySet];
     }
 }

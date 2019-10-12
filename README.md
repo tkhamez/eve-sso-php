@@ -18,6 +18,11 @@ which contains the required CSS and images.
 
 ## Changelog
 
+### 2.1.0
+
+- Added JsonWebToken class
+- Using strict types now
+
 ### 2.0.0
 
 - Support for EVE SSO v2

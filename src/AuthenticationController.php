@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Brave\Sso\Basics;
 
 use Psr\Http\Message\ServerRequestInterface;
@@ -33,8 +36,9 @@ class AuthenticationController
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
      * @return ResponseInterface
+     * @throws \RuntimeException
      */
-    public function index(ServerRequestInterface $request, ResponseInterface $response)
+    public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $serviceName = isset($this->container->get('settings')['brave.serviceName']) ?
             $this->container->get('settings')['brave.serviceName'] : 'Brave Service';
@@ -69,8 +73,11 @@ class AuthenticationController
      * @throws \Exception
      * @return ResponseInterface
      */
-    public function auth(ServerRequestInterface $request, ResponseInterface $response, $ssoV2 = false)
-    {
+    public function auth(
+        ServerRequestInterface $request,
+        ResponseInterface $response, 
+        bool $ssoV2 = false
+    ): ResponseInterface {
         $queryParameters = $request->getQueryParams();
 
         if (!isset($queryParameters['code']) || !isset($queryParameters['state'])) {

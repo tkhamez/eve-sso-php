@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Test;
 
@@ -8,7 +10,9 @@ use PHPUnit\Framework\TestCase;
 
 class EveAuthenticationTest extends TestCase
 {
-
+    /**
+     * @throws \Exception
+     */
     public function testJsonSerialize()
     {
         $token = new AccessToken(['access_token' => 'at']);
