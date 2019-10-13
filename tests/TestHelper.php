@@ -19,7 +19,7 @@ class TestHelper
     {
         $jwk = JWKFactory::createRSAKey(2048, ['alg' => 'RS256', 'use' => 'sig']);
         $algorithmManager = new AlgorithmManager([new RS256()]);
-        $jwsBuilder = new JWSBuilder(null, $algorithmManager);
+        $jwsBuilder = new JWSBuilder($algorithmManager);
         $payload = (string) json_encode([
             'scp' => ['scope1', 'scope2'],
             'sub' => $sub,

@@ -18,6 +18,10 @@ which contains the required CSS and images.
 
 ## Changelog
 
+### 3.0.0
+
+- Raised minimum required PHP Version to 7.2.0
+
 ### 2.1.0
 
 - Added JsonWebToken class

@@ -72,7 +72,7 @@ class JsonWebToken
 
     /**
      * @param array $publicKeys
-     * @throws \RuntimeException
+     * @throws \LogicException If Elliptic Curve key type not supported by OpenSSL
      * @throws \UnexpectedValueException
      * @return bool
      */

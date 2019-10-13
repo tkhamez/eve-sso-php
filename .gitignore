@@ -1,6 +1,7 @@
 composer.phar
 /vendor/
 /.idea
+/.phpunit.result.cache
 /coverage
 /composer.lock
 

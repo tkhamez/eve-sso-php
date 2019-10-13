@@ -24,7 +24,7 @@ class AuthenticationProviderTest extends TestCase
      */
     private $authenticationProvider;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->client = new TestClient();
         $sso = new GenericProvider([
@@ -37,8 +37,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws ExpectationFailedException
-     * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function testGetProvider()
     {
@@ -210,13 +209,12 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws ExpectationFailedException
-     * @throws InvalidArgumentException
+     * @throws \Exception
      */
     public function testBuildLoginUrl()
     {
         $url = $this->authenticationProvider->buildLoginUrl('state123');
-        $this->assertContains('state=state123', $url);
+        $this->assertStringContainsString('state=state123', $url);
     }
 
     /**
