@@ -56,13 +56,17 @@ class JsonWebTokenTest extends TestCase
      */
     public function testVerifyIssuer()
     {
-        list($token) = TestHelper::createTokenAndKeySet('http://local.host/auth');
+        list($token) = TestHelper::createTokenAndKeySet('https://local.host');
+        $accessToken = new AccessToken(['access_token' => $token]);
+        $jwt = new JsonWebToken($accessToken);
+        $this->assertFalse($jwt->verifyIssuer('https://other.host/auth'));
+        $this->assertTrue($jwt->verifyIssuer('https://local.host/auth'));
 
-        $token = new AccessToken(['access_token' => $token]);
-        $jws = new JsonWebToken($token);
-        
-        $this->assertFalse($jws->verifyIssuer('http://other.host/auth'));
-        $this->assertTrue($jws->verifyIssuer('http://local.host/auth'));
+        // https://github.com/ccpgames/sso-issues/issues/41
+        list($token2) = TestHelper::createTokenAndKeySet('login.eveonline.com');
+        $accessToken2 = new AccessToken(['access_token' => $token2]);
+        $jwt2 = new JsonWebToken($accessToken2);
+        $this->assertTrue($jwt2->verifyIssuer('https://login.eveonline.com/auth'));
     }
 
     /**
