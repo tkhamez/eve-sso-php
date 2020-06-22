@@ -24,7 +24,7 @@ class EveAuthentication implements \JsonSerializable
     private $characterOwnerHash;
 
     /**
-     * @var array
+     * @var string[]
      */
     private $scopes;
 
@@ -38,7 +38,7 @@ class EveAuthentication implements \JsonSerializable
      * @param string $characterName
      * @param string $characterOwnerHash
      * @param AccessTokenInterface $token
-     * @param array $scopes
+     * @param string[] $scopes
      */
     public function __construct(
         int $characterId,
@@ -74,6 +74,9 @@ class EveAuthentication implements \JsonSerializable
         return $this->token;
     }
 
+    /**
+     * @return string[]
+     */
     public function getScopes(): array
     {
         return $this->scopes;
