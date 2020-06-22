@@ -17,7 +17,7 @@ class AuthenticationProvider
     /**
      * Scopes for EVE SSO login.
      *
-     * @var array
+     * @var string[]
      */
     private $scopes = [];
 
@@ -27,9 +27,8 @@ class AuthenticationProvider
     private $keySetUri;
 
     /**
-     *
      * @param GenericProvider $sso
-     * @param array $scopes
+     * @param string[] $scopes
      * @param string $keySetUrl URL of the JWT key set, required for SSO v2.
      * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
      */
@@ -45,6 +44,9 @@ class AuthenticationProvider
         return $this->sso;
     }
 
+    /**
+     * @param string[] $scopes
+     */
     public function setScopes(array $scopes): self
     {
         foreach ($scopes as $scope) {
@@ -159,8 +161,7 @@ class AuthenticationProvider
             'state' => $state,
         ];
 
-        $url = $this->sso->getAuthorizationUrl($options);
-        return $url;
+        return $this->sso->getAuthorizationUrl($options);
     }
 
     /**
