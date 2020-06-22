@@ -51,3 +51,4 @@ try {
 
 - Forked and renamed from bravecollective/sso-basics
 - Removed example login controller and HTML page.
+- Changed EveAuthentication::$characterId type from string|int to int

@@ -9,7 +9,7 @@ use League\OAuth2\Client\Token\AccessTokenInterface;
 class EveAuthentication implements \JsonSerializable
 {
     /**
-     * @var string|int
+     * @var int
      */
     private $characterId;
 
@@ -34,14 +34,14 @@ class EveAuthentication implements \JsonSerializable
     private $token;
 
     /**
-     * @param string|int $characterId
+     * @param int $characterId
      * @param string $characterName
      * @param string $characterOwnerHash
      * @param AccessTokenInterface $token
      * @param array $scopes
      */
     public function __construct(
-        $characterId,
+        int $characterId,
         string $characterName,
         string $characterOwnerHash,
         AccessTokenInterface $token,
@@ -54,10 +54,7 @@ class EveAuthentication implements \JsonSerializable
         $this->scopes = $scopes;
     }
 
-    /**
-     * @return string|int
-     */
-    public function getCharacterId()
+    public function getCharacterId(): int
     {
         return $this->characterId;
     }
