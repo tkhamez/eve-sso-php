@@ -1,14 +1,15 @@
-[![Build Status](https://api.travis-ci.org/bravecollective/sso-basics.svg?branch=master)](https://travis-ci.org/bravecollective/sso-basics)
+[![Build Status](https://travis-ci.com/tkhamez/eve-sso.svg?branch=master)](https://travis-ci.com/tkhamez/eve-sso)
 
-# sso-basics
-Some super basic package for supporting EVE SSO v1 and v2.
+# EVE SSO
+
+Package supporting EVE SSO v1 and v2.
 
 ## Install
 
 To install the bindings via [Composer](http://getcomposer.org/), execute:
 
 ```
-composer require bravecollective/sso-basics
+composer require tkhamez/eve-sso
 ```
 
 ### SSO Login page
@@ -18,25 +19,6 @@ which contains the required CSS and images.
 
 ## Changelog
 
-### 3.0.0
-
-- Raised minimum required PHP Version to 7.2.0
-
-### 2.1.0
-
-- Added JsonWebToken class
-- Using strict types now
-
-### 2.0.0
-
-- Support for EVE SSO v2
-- Needs PHP 7.1+
-- Needs gmp and mbstring PHP extensions
-- EveAuthentication class: The $token type hint has been changed from `ResourceOwnerAccessTokenInterface`
-  to `AccessTokenInterface` because the ID is not added anyway and `League\OAuth2\Client\Provider::getAccessToken()`,
-  from which this object originates, declares the same return type.
-
 ### 1.0.0
 
-- First stable release with support for EVE SSO v1.
-- Needs PHP 5.6+
+- Forked and renamed from bravecollective/sso-basics

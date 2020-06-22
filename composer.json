@@ -1,5 +1,5 @@
 {
-    "name": "bravecollective/sso-basics",
+    "name": "tkhamez/eve-sso",
     "description": "",
     "type": "library",
     "license": "MIT",
@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Brave\\Sso\\Basics\\": "src",
+            "Eve\\Sso\\": "src",
             "Test\\": "tests"
         }
     },

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Test;
 
-use Brave\Sso\Basics\AuthenticationProvider;
+use Eve\Sso\AuthenticationProvider;
 use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\Psr7\Response;
 use League\OAuth2\Client\Provider\GenericProvider;

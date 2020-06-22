@@ -1,6 +1,6 @@
 <phpunit>
     <testsuites>
-        <testsuite name="sso-basics">
+        <testsuite name="eve-sso">
             <directory>tests</directory>
         </testsuite>
     </testsuites>

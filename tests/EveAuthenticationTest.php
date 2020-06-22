@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Test;
 
-use Brave\Sso\Basics\EveAuthentication;
+use Eve\Sso\EveAuthentication;
 use League\OAuth2\Client\Token\AccessToken;
 use PHPUnit\Framework\TestCase;
 

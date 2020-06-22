@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Brave\Sso\Basics;
+namespace Eve\Sso;
 
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
