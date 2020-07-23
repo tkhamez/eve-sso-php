@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/tkhamez/eve-sso.svg?branch=master)](https://travis-ci.com/tkhamez/eve-sso)
+[![Build Status](https://travis-ci.com/tkhamez/eve-sso-php.svg?branch=master)](https://travis-ci.com/tkhamez/eve-sso-php)
 
 # EVE SSO
 
@@ -31,11 +31,13 @@ $provider = new Eve\Sso\AuthenticationProvider(
 );
 
 // Login URL
+session_start();
 $_SESSION['state'] = $provider->generateState();
 $loginUrl = $provider->buildLoginUrl($_SESSION['state']);
 header("Location: $loginUrl");
 
 // Callback URL
+session_start();
 try {
     #$auth = $provider->validateAuthentication($_GET['state'], $_SESSION['state'], $_GET['code']);  // SSO v1
     $auth = $provider->validateAuthenticationV2($_GET['state'], $_SESSION['state'], $_GET['code']); // SSO v2
