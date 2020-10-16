@@ -49,7 +49,10 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testGenerateState()
     {
-        $this->assertRegExp('/prefix[a-f0-9]{32}/i', $this->authenticationProvider->generateState('prefix'));
+        $this->assertMatchesRegularExpression(
+            '/prefix[a-f0-9]{32}/i',
+            $this->authenticationProvider->generateState('prefix')
+        );
     }
 
     /**

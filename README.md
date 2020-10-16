@@ -49,6 +49,11 @@ try {
 
 ## Changelog
 
+### 2.0.0
+
+- Raised minimum PHP version to 7.3.
+- Updated Guzzle HTTP client to ^7.2 (from ^6.3).
+
 ### 1.0.0
 
 - Forked and renamed from bravecollective/sso-basics

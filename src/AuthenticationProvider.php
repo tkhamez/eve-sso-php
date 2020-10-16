@@ -29,7 +29,7 @@ class AuthenticationProvider
     /**
      * @param GenericProvider $sso
      * @param string[] $scopes
-     * @param string $keySetUrl URL of the JWT key set, required for SSO v2.
+     * @param string|null $keySetUrl URL of the JWT key set, required for SSO v2.
      * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
      */
     public function __construct(GenericProvider $sso, array $scopes = [], string $keySetUrl = null)

@@ -39,7 +39,7 @@ class TestClient extends Client
      * @return ResponseInterface
      * @throws GuzzleException
      */
-    public function request($method, $uri = '', array $options = []): ResponseInterface
+    public function request(string $method, $uri = '', array $options = []): ResponseInterface
     {
         return $this->nextResponse();
     }
