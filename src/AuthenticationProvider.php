@@ -117,7 +117,7 @@ class AuthenticationProvider
      * Handle and validate OAuth response data from SSO v2.
      *
      * @throws \UnexpectedValueException For different errors during validation.
-     * @throws \LogicException If Elliptic Curve key type not supported by OpenSSL
+     * @throws \LogicException If Elliptic Curve key type is not supported by OpenSSL
      * @throws \RuntimeException
      */
     public function validateAuthenticationV2(
