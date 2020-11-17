@@ -49,6 +49,10 @@ try {
 
 ## Changelog
 
+### 2.0.1
+
+- Fix: Require PHP gmp extension (key verification fails without it).
+
 ### 2.0.0
 
 - Raised minimum PHP version to 7.3.
