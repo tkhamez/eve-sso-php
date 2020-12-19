@@ -28,9 +28,9 @@ class AuthenticationProviderTest extends TestCase
     {
         $this->client = new TestClient();
         $sso = new GenericProvider([
-            'urlAuthorize' => 'http://localhost/auth',
-            'urlAccessToken' => 'http://localhost/token',
-            'urlResourceOwnerDetails' => 'http://localhost/owner',
+            'urlAuthorize' => 'https://localhost/auth',
+            'urlAccessToken' => 'https://localhost/token',
+            'urlResourceOwnerDetails' => 'https://localhost/owner',
         ]);
         $sso->setHttpClient($this->client);
         $this->authenticationProvider = new AuthenticationProvider($sso, [], 'http://localhost/jwks');
@@ -321,7 +321,7 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2Success()
     {
-        list($token, $keySet) = TestHelper::createTokenAndKeySet();
+        list($token, $keySet) = TestHelper::createTokenAndKeySet(); // issuer = localhost
 
         // set responses
         $this->client->setResponse(
@@ -339,5 +339,21 @@ class AuthenticationProviderTest extends TestCase
         $this->assertSame('hash', $result->getCharacterOwnerHash());
         $this->assertSame(['scope1', 'scope2'], $result->getScopes());
         $this->assertSame($token, $result->getToken()->getToken());
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testValidateAuthenticationV2SuccessIssuerWithHttps()
+    {
+        // see https://github.com/ccpgames/sso-issues/issues/41
+
+        list($token, $keySet) = TestHelper::createTokenAndKeySet('https://localhost', 'CHARACTER:EVE:123456', []);
+        $this->client->setResponse(
+            new Response(200, [], '{"access_token": ' . json_encode($token) . '}'),
+            new Response(200, [], '{"keys": ' . json_encode($keySet) . '}')
+        );
+        $result = $this->authenticationProvider->validateAuthenticationV2('state', 'state');
+        $this->assertSame(123456, $result->getCharacterId());
     }
 }
