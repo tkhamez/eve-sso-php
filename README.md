@@ -60,6 +60,6 @@ try {
 
 ### 1.0.0
 
-- Forked and renamed from bravecollective/sso-basics
+- Forked and renamed from [bravecollective/sso-basics](https://github.com/bravecollective/sso-basics) 3.0.0
 - Removed example login controller and HTML page.
 - Changed EveAuthentication::$characterId type from string|int to int
