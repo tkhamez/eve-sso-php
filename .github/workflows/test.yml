@@ -1,0 +1,23 @@
+name: test
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        php-versions: ['7.3', '7.4', '8.0']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: gmp
+          tools: composer:v2
+      - name: Install
+        run: composer install
+      - name: Test
+        run: vendor/bin/phpunit

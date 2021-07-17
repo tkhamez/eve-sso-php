@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/tkhamez/eve-sso-php.svg?branch=master)](https://travis-ci.com/tkhamez/eve-sso-php)
+[![build](https://github.com/tkhamez/eve-sso/workflows/test/badge.svg)](https://github.com/tkhamez/eve-sso/actions)
 
 # EVE SSO
 
