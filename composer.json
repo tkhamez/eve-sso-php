@@ -1,15 +1,14 @@
 {
     "name": "tkhamez/eve-sso",
-    "description": "",
+    "description": "EVE Online - SSO",
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^7.3",
+        "php": "^7.3|^8.0",
         "ext-gmp": "*",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^7.2",
         "league/oauth2-client": "^2.2",
-        "paragonie/random_compat": "^2|^9.99",
         "web-token/jwt-key-mgmt": "^2.0",
         "web-token/jwt-signature": "^2.0",
         "web-token/jwt-signature-algorithm-ecdsa": "^2.0",
