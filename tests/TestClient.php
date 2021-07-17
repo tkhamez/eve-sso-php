@@ -47,7 +47,7 @@ class TestClient extends Client
     /**
      * @throws GuzzleException
      */
-    private function nextResponse()
+    private function nextResponse(): ResponseInterface
     {
         $next = array_shift($this->responses);
         if ($next instanceof GuzzleException) {

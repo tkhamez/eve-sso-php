@@ -83,7 +83,6 @@ class AuthenticationProvider
         }
 
         // get resource owner (character ID etc.)
-        $resourceOwner = null;
         try {
             $resourceOwner = $this->sso->getResourceOwner($token);
         } catch (\Exception $e) {
@@ -97,7 +96,7 @@ class AuthenticationProvider
         }
 
         // verify scopes (user can manipulate the SSO login URL)
-        $scopes = isset($verify['Scopes']) ? $verify['Scopes'] : '';
+        $scopes = $verify['Scopes'] ?? '';
         $scopeList = $scopes !== '' ? explode(' ', $scopes) : [];
 
         if (! $this->verifyScopes($scopeList)) {
@@ -106,8 +105,8 @@ class AuthenticationProvider
 
         return new EveAuthentication(
             $verify['CharacterID'],
-            isset($verify['CharacterName']) ? $verify['CharacterName'] : '',
-            isset($verify['CharacterOwnerHash']) ? $verify['CharacterOwnerHash'] : '',
+            $verify['CharacterName'] ?? '',
+            $verify['CharacterOwnerHash'] ?? '',
             $token,
             $scopeList
         );
