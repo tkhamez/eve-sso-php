@@ -49,6 +49,10 @@ try {
 
 ## Changelog
 
+### 2.0.2
+
+Update PHP requirement to include version 8 (^7.3|^8.0).
+
 ### 2.0.1
 
 - Fix: Require PHP gmp extension (key verification fails without it).
