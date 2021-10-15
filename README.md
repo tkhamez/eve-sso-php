@@ -49,6 +49,10 @@ try {
 
 ## Changelog
 
+### next
+
+Cache JSON Web Key Set.
+
 ### 2.0.2
 
 Update PHP requirement to include version 8 (^7.3|^8.0).

@@ -27,6 +27,13 @@ class AuthenticationProvider
     private $keySetUri;
 
     /**
+     * Cache of JSON Web Key Set.
+     *
+     * @var array|null
+     */
+    private $keys;
+
+    /**
      * @param GenericProvider $sso
      * @param string[] $scopes
      * @param string|null $keySetUrl URL of the JWT key set, required for SSO v2.
@@ -188,6 +195,10 @@ class AuthenticationProvider
      */
     private function getPublicKeys(): array
     {
+        if (!empty($this->keys)) {
+            return $this->keys;
+        }
+
         $client = $this->sso->getHttpClient();
 
         try {
@@ -201,6 +212,8 @@ class AuthenticationProvider
             throw new \UnexpectedValueException('Failed to parse public keys.', 1526220032);
         }
 
-        return $keySet['keys'];
+        $this->keys = $keySet['keys'];
+
+        return $this->keys;
     }
 }
