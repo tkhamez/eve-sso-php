@@ -16,7 +16,7 @@ composer require tkhamez/eve-sso
 
 ```php
 $provider = new Eve\Sso\AuthenticationProvider(
-    new League\OAuth2\Client\Provider\GenericProvider([
+    [
         'clientId'     => 'your-EVE-app-client-ID',
         'clientSecret' => 'your-EVE-app-secret-key',
         'redirectUri'  => 'https://your-callback.url',
@@ -24,10 +24,11 @@ $provider = new Eve\Sso\AuthenticationProvider(
         'urlAuthorize'    => 'https://login.eveonline.com/v2/oauth/authorize', // SSO v2
         #'urlAccessToken' => 'https://login.eveonline.com/oauth/token',    // SSO v1
         'urlAccessToken'  => 'https://login.eveonline.com/v2/oauth/token', // SSO v2
-        'urlResourceOwnerDetails' => 'https://login.eveonline.com/oauth/verify', // only used for SSO v1
-    ]),
+        'urlResourceOwnerDetails' => 'https://login.eveonline.com/oauth/verify', // only for SSO v1
+        'urlKeySet' => 'https://login.eveonline.com/oauth/jwks', // only for SSO v2
+        'urlRevoke' => 'https://login.eveonline.com/v2/oauth/revoke',
+    ],
     ['esi-mail.read_mail.v1', 'esi-skills.read_skills.v1'], // add all required scopes
-    'https://login.eveonline.com/oauth/jwks' // only used for SSO v2
 );
 
 // Login URL
@@ -49,13 +50,17 @@ try {
 
 ## Changelog
 
-### next
+### 3.0.0
 
-Cache JSON Web Key Set.
+- Changed constructor parameters of AuthenticationProvider class, see above.
+- Added AuthenticationProvider::setProvider() method
+- Added AuthenticationProvider::refreshAccessToken() method
+- Added AuthenticationProvider::revokeRefreshToken() method
+- The JSON Web Key Set is now cached.
 
 ### 2.0.2
 
-Update PHP requirement to include version 8 (^7.3|^8.0).
+- Update PHP requirement to include version 8 (^7.3|^8.0).
 
 ### 2.0.1
 

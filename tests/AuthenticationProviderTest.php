@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Test;
 
 use Eve\Sso\AuthenticationProvider;
+use Eve\Sso\InvalidGrantException;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\Psr7\Response;
 use League\OAuth2\Client\Provider\GenericProvider;
+use League\OAuth2\Client\Token\AccessToken;
 use PHPUnit\Framework\ExpectationFailedException;
 use PHPUnit\Framework\TestCase;
 use SebastianBergmann\RecursionContext\InvalidArgumentException;
@@ -27,21 +30,61 @@ class AuthenticationProviderTest extends TestCase
     public function setUp(): void
     {
         $this->client = new TestClient();
-        $sso = new GenericProvider([
+        $options = [
+            'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
             'urlAuthorize' => 'https://localhost/auth',
             'urlAccessToken' => 'https://localhost/token',
             'urlResourceOwnerDetails' => 'https://localhost/owner',
-        ]);
-        $sso->setHttpClient($this->client);
-        $this->authenticationProvider = new AuthenticationProvider($sso, [], 'http://localhost/jwks');
+            'urlKeySet' => 'http://localhost/jwks',
+            'urlRevoke' => 'http://localhost/revoke',
+        ];
+        $this->authenticationProvider = new AuthenticationProvider($options, []);
+        $this->authenticationProvider->getProvider()->setHttpClient($this->client);
     }
 
-    /**
-     * @throws \Exception
-     */
-    public function testGetProvider()
+    public function testConstruct_MinimalOptions()
     {
-        $this->assertInstanceOf(GenericProvider::class, $this->authenticationProvider->getProvider());
+        new AuthenticationProvider([
+            'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
+            'urlAuthorize' => 'https://localhost/auth',
+            'urlAccessToken' => 'https://localhost/token',
+            'urlResourceOwnerDetails' => '',
+            'urlKeySet' => '',
+            'urlRevoke' => 'http://localhost/revoke',
+        ], []);
+
+        $this->assertTrue(true); // no exception was thrown
+    }
+
+    public function testConstruct_Exception()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionCode(0);
+        $this->expectExceptionMessage('At least one of the required options is not defined or empty.');
+
+        new AuthenticationProvider([
+            #'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
+            'urlAuthorize' => 'https://localhost/auth',
+            'urlAccessToken' => 'https://localhost/token',
+            'urlResourceOwnerDetails' => 'https://localhost/owner',
+            'urlKeySet' => 'http://localhost/jwks',
+            'urlRevoke' => 'http://localhost/revoke',
+        ], []);
+    }
+
+    public function testSetGetProvider()
+    {
+        $provider = new GenericProvider(
+            ['urlAuthorize' => '', 'urlAccessToken' => '', 'urlResourceOwnerDetails' => '']
+        );
+        $this->authenticationProvider->setProvider($provider);
+        $this->assertSame($provider, $this->authenticationProvider->getProvider());
     }
 
     /**
@@ -355,5 +398,130 @@ class AuthenticationProviderTest extends TestCase
         );
         $result = $this->authenticationProvider->validateAuthenticationV2('state', 'state');
         $this->assertSame(123456, $result->getCharacterId());
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testRefreshAccessToken_ServerException()
+    {
+        $this->client->setResponse(new Response(500));
+
+        $token = new AccessToken([
+            'access_token' => 'at',
+            'refresh_token' => '',
+            'expires' => 1349067601 // 2012-10-01 + 1
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionCode(0);
+        $this->expectExceptionMessage('An OAuth server error ');
+
+        $this->authenticationProvider->refreshAccessToken($token);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testRefreshAccessToken_IdentityProviderException()
+    {
+        $this->client->setResponse(new Response(400, [], '{ "error": "invalid_grant" }'));
+
+        $token = new AccessToken([
+            'access_token' => 'at',
+            'refresh_token' => 'rt',
+            'expires' => 1349067601 // 2012-10-01 + 1
+        ]);
+
+        $this->expectException(InvalidGrantException::class);
+        $this->expectExceptionCode(0);
+        $this->expectExceptionMessage('');
+
+        $this->authenticationProvider->refreshAccessToken($token);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testRefreshAccessToken_NotExpired()
+    {
+        $token = new AccessToken([
+            'access_token' => 'old-token',
+            'refresh_token' => 're-tk',
+            'expires' => time() + 10000
+        ]);
+
+        $this->assertSame('old-token', $this->authenticationProvider->refreshAccessToken($token)->getToken());
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testRefreshAccessToken_NewToken()
+    {
+        $this->client->setResponse(new Response(
+            200,
+            [],
+            '{"access_token": "new-token",
+            "refresh_token": "",
+            "expires": 1519933900}' // 03/01/2018 @ 7:51pm (UTC)
+        ));
+
+        $token = new AccessToken([
+            'access_token' => 'old-token',
+            'refresh_token' => '',
+            'expires' => 1519933545 // 03/01/2018 @ 7:45pm (UTC)
+        ]);
+
+        $tokenResult = $this->authenticationProvider->refreshAccessToken($token);
+
+        $this->assertNotSame($token, $tokenResult);
+        $this->assertSame('new-token', $tokenResult->getToken());
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function testRevokeAccessToken_RequestError()
+    {
+        $this->client->setResponse(new TransferException('Error.', 543789));
+
+        $token = new AccessToken(['access_token' => 'at', 'refresh_token' => 'rt']);
+
+        $this->expectException(GuzzleException::class);
+        $this->expectExceptionCode(543789);
+        $this->expectExceptionMessage('Error.');
+
+        $this->authenticationProvider->revokeRefreshToken($token);
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function testRevokeAccessToken_Failure()
+    {
+        $this->client->setResponse(new Response(400));
+
+        $token = new AccessToken(['access_token' => 'at', 'refresh_token' => 'rt']);
+
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionCode(0);
+        $this->expectExceptionMessage('Error revoking token: 400 Bad Request');
+
+        $this->authenticationProvider->revokeRefreshToken($token);
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    public function testRevokeAccessToken_OK()
+    {
+        $this->client->setResponse(new Response(200));
+
+        $token = new AccessToken(['access_token' => 'at', 'refresh_token' => 'rt']);
+
+        $this->authenticationProvider->revokeRefreshToken($token);
+
+        $this->assertTrue(true); // did not throw an exception
     }
 }
