@@ -1,4 +1,4 @@
-[![build](https://github.com/tkhamez/eve-sso/workflows/test/badge.svg)](https://github.com/tkhamez/eve-sso/actions)
+[![build](https://github.com/tkhamez/eve-sso-php/workflows/test/badge.svg)](https://github.com/tkhamez/eve-sso-php/actions)
 
 # EVE SSO
 
