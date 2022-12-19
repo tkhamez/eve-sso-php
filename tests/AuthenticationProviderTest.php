@@ -362,6 +362,28 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws \Exception
      */
+    public function testValidateAuthenticationV2PublicKeysCache()
+    {
+        list($token, $keySet) = TestHelper::createTokenAndKeySet(); // issuer = localhost
+
+        $this->client->setResponse(
+            new Response(200, [], '{"access_token": ' . json_encode($token) . '}'), // for getAccessToken()
+            new Response(200, [], '{"keys": ' . json_encode($keySet) . '}'), // for SSO JWT key set
+
+            new Response(200, [], '{"access_token": ' . json_encode($token) . '}') // for getAccessToken()
+        );
+
+        $this->authenticationProvider->setScopes(['scope1', 'scope2']);
+        $result1 = $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
+        $result2 = $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
+
+        $this->assertSame(123, $result1->getCharacterId());
+        $this->assertSame(123, $result2->getCharacterId());
+    }
+
+    /**
+     * @throws \Exception
+     */
     public function testValidateAuthenticationV2Success()
     {
         list($token, $keySet) = TestHelper::createTokenAndKeySet(); // issuer = localhost
