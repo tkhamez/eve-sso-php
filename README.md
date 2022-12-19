@@ -8,13 +8,14 @@ Package supporting EVE SSO v1 and v2.
 
 To install the bindings via [Composer](http://getcomposer.org/), execute:
 
-```
+```shell
 composer require tkhamez/eve-sso
 ```
 
 ## Example Usage
 
 ```php
+// Initiate provider object for login and callback URLs
 $provider = new Eve\Sso\AuthenticationProvider(
     [
         'clientId'     => 'your-EVE-app-client-ID',
@@ -46,6 +47,18 @@ try {
 } catch (Exception $e) {
     echo $e->getMessage();
 }
+```
+
+## Dev Env
+
+```shell
+docker build --tag eve-sso .
+docker run -it --mount type=bind,source="$(pwd)",target=/app --workdir /app eve-sso /bin/sh
+```
+
+Run tests with coverage:
+```shell
+XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html coverage
 ```
 
 ## Changelog
