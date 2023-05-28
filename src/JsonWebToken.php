@@ -58,16 +58,18 @@ class JsonWebToken
         }
     }
 
-    /**
-     * @param string $baseUrl The base URL for authorizing a client
-     * @return bool
-     */
-    public function verifyIssuer(string $baseUrl): bool
+    public function verifyIssuer(string $issuer): bool
     {
-        if (strpos($baseUrl, $this->payload->iss) === false) {
-            return false;
+        // see https://github.com/ccpgames/sso-issues/issues/41
+
+        $issuerWithHttps = $issuer;
+        if (strpos($issuer, 'http') !== 0) {
+            $issuerWithHttps = "https://$issuer";
         }
-        return true;
+
+        return
+            $this->payload->iss === $issuer ||
+            $this->payload->iss === $issuerWithHttps;
     }
 
     /**

@@ -36,6 +36,7 @@ class AuthenticationProviderTest extends TestCase
             'urlAccessToken' => 'https://localhost/token',
             'urlKeySet' => 'http://localhost/jwks',
             'urlRevoke' => 'http://localhost/revoke',
+            'issuer' => 'localhost',
         ];
         $this->authenticationProvider = new AuthenticationProvider($options, []);
         $this->authenticationProvider->getProvider()->setHttpClient($this->client);
@@ -242,8 +243,6 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2SuccessIssuerWithHttps()
     {
-        // see https://github.com/ccpgames/sso-issues/issues/41
-
         list($token, $keySet) = TestHelper::createTokenAndKeySet('https://localhost', 'CHARACTER:EVE:123456', []);
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token) . '}'),

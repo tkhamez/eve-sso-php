@@ -12,6 +12,7 @@ Other changes:
 
 - Some entries of the options array from AuthenticationProvider::construct are now optional and have default values
   (see [README.md](README.md)).
+- Added `issuer` to options array from AuthenticationProvider::construct (optional).
 
 ## 3.0.0
 

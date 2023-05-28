@@ -44,6 +44,11 @@ class AuthenticationProvider
     private $revokeUrl;
 
     /**
+     * @var string|null
+     */
+    private $issuer;
+
+    /**
      * Cache of JSON Web Key Set.
      *
      * @var array|null
@@ -67,6 +72,7 @@ class AuthenticationProvider
         $this->clientSecret = $options['clientSecret'];
         $this->keySetUri = $options['urlKeySet'];
         $this->revokeUrl = $options['urlRevoke'];
+        $this->issuer = $options['issuer'];
     }
 
     public function setProvider(GenericProvider $provider): void
@@ -120,7 +126,7 @@ class AuthenticationProvider
 
         // parse and verify token
         $jws = new JsonWebToken($token);
-        if (!$jws->verifyIssuer($this->sso->getBaseAuthorizationUrl())) {
+        if (!$jws->verifyIssuer($this->issuer)) {
             throw new \UnexpectedValueException('Token issuer does not match.', 1526220023);
         }
         $jws->verifySignature($this->getPublicKeys());
@@ -233,6 +239,9 @@ class AuthenticationProvider
         }
         if (empty($options['urlRevoke'])) {
             $options['urlRevoke'] = 'https://login.eveonline.com/v2/oauth/revoke';
+        }
+        if (empty($options['issuer'])) {
+            $options['issuer'] = 'login.eveonline.com';
         }
 
         // "urlResourceOwnerDetails" is required by the GenericProvider, but not used in this package.

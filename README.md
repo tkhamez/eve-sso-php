@@ -29,6 +29,7 @@ $provider = new Eve\Sso\AuthenticationProvider(
         'urlAccessToken' => 'https://login.eveonline.com/v2/oauth/token',
         'urlKeySet'      => 'https://login.eveonline.com/oauth/jwks',
         'urlRevoke'      => 'https://login.eveonline.com/v2/oauth/revoke',
+        'issuer'         => 'login.eveonline.com',
     ],
     ['esi-mail.read_mail.v1', 'esi-skills.read_skills.v1'], // add all required scopes
 );
