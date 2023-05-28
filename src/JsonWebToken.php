@@ -53,7 +53,7 @@ class JsonWebToken
 
         // parse data
         $this->payload = json_decode($this->jws->getPayload());
-        if ($this->payload === null || ! isset($this->payload->sub)) {
+        if ($this->payload === null || !isset($this->payload->sub)) {
             throw new \UnexpectedValueException('Invalid token data.', 1526220022);
         }
     }
@@ -93,7 +93,7 @@ class JsonWebToken
         } catch(\InvalidArgumentException $e) {
             throw new \UnexpectedValueException('Could not verify token signature.', 1526220025);
         }
-        if (! $valid) {
+        if (!$valid) {
             throw new \UnexpectedValueException('Invalid token signature.', 1526220026);
         }
         
@@ -105,7 +105,7 @@ class JsonWebToken
         $data = $this->payload;
 
         return new EveAuthentication(
-            (int) str_replace('CHARACTER:EVE:', '', $data->sub),
+            (int)str_replace('CHARACTER:EVE:', '', $data->sub),
             $data->name ?? '',
             $data->owner ?? '',
             $this->token,

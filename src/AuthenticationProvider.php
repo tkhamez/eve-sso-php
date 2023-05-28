@@ -70,6 +70,11 @@ class AuthenticationProvider
             throw new \InvalidArgumentException('At least one of the required options is not defined or empty.');
         }
 
+        // "urlResourceOwnerDetails" is required by the GenericProvider, but not used here.
+        if (!isset($options['urlResourceOwnerDetails'])) {
+            $options['urlResourceOwnerDetails'] = '';
+        }
+
         $this->sso = new GenericProvider($options);
         $this->setScopes($scopes);
 
@@ -104,58 +109,6 @@ class AuthenticationProvider
     }
 
     /**
-     * Handle and validate OAuth response data
-     *
-     * @throws \UnexpectedValueException
-     */
-    public function validateAuthentication(
-        string $requestState, 
-        string $sessionState, 
-        string $code = ''
-    ): EveAuthentication {
-        // check OAuth state parameter
-        if ($requestState !== $sessionState) {
-            throw new \UnexpectedValueException('OAuth state mismatch.', 1526240073);
-        }
-
-        // get token(s)
-        try {
-            $token = $this->sso->getAccessToken('authorization_code', ['code' => $code]);
-        } catch (\Exception $e) {
-            throw new \UnexpectedValueException('Error when requesting the token.', 1526240034);
-        }
-
-        // get resource owner (character ID etc.)
-        try {
-            $resourceOwner = $this->sso->getResourceOwner($token);
-        } catch (\Exception $e) {
-            throw new \UnexpectedValueException('Error obtaining resource owner.', 1526240015);
-        }
-
-        // verify result
-        $verify = $resourceOwner !== null ? $resourceOwner->toArray() : null;
-        if (! is_array($verify) || ! isset($verify['CharacterID'])) {
-            throw new \UnexpectedValueException('Error obtaining Character ID.', 1526239971);
-        }
-
-        // verify scopes (user can manipulate the SSO login URL)
-        $scopes = $verify['Scopes'] ?? '';
-        $scopeList = $scopes !== '' ? explode(' ', $scopes) : [];
-
-        if (! $this->verifyScopes($scopeList)) {
-            throw new \UnexpectedValueException('Required scopes do not match.', 1526239938);
-        }
-
-        return new EveAuthentication(
-            $verify['CharacterID'],
-            $verify['CharacterName'] ?? '',
-            $verify['CharacterOwnerHash'] ?? '',
-            $token,
-            $scopeList
-        );
-    }
-
-    /**
      * Handle and validate OAuth response data from SSO v2.
      *
      * @throws \UnexpectedValueException For different errors during validation.
@@ -181,7 +134,7 @@ class AuthenticationProvider
 
         // parse and verify token
         $jws = new JsonWebToken($token);
-        if (! $jws->verifyIssuer($this->sso->getBaseAuthorizationUrl())) {
+        if (!$jws->verifyIssuer($this->sso->getBaseAuthorizationUrl())) {
             throw new \UnexpectedValueException('Token issuer does not match.', 1526220023);
         }
         $jws->verifySignature($this->getPublicKeys());
@@ -189,7 +142,7 @@ class AuthenticationProvider
         $auth = $jws->getEveAuthentication();
 
         // verify scopes (user can manipulate the SSO login URL)
-        if (! $this->verifyScopes($auth->getScopes())) {
+        if (!$this->verifyScopes($auth->getScopes())) {
             throw new \UnexpectedValueException('Required scopes do not match.', 1526220014);
         }
 
@@ -229,7 +182,7 @@ class AuthenticationProvider
             try {
                 $newToken = $this->sso->getAccessToken(
                     'refresh_token',
-                    ['refresh_token' => (string) $existingToken->getRefreshToken()]
+                    ['refresh_token' => (string)$existingToken->getRefreshToken()]
                 );
             } catch (\Exception $e) {
                 if ($e instanceof IdentityProviderException && $e->getMessage() === 'invalid_grant') {
@@ -299,7 +252,7 @@ class AuthenticationProvider
         }
 
         $keySet = json_decode($response->getBody()->getContents(), true);
-        if ($keySet === null || ! isset($keySet['keys']) || ! is_array($keySet['keys'])) {
+        if ($keySet === null || !isset($keySet['keys']) || !is_array($keySet['keys'])) {
             throw new \UnexpectedValueException('Failed to parse public keys.', 1526220032);
         }
 
