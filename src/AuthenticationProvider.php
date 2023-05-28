@@ -11,6 +11,8 @@ use League\OAuth2\Client\Token\AccessTokenInterface;
 
 class AuthenticationProvider
 {
+    private $signatureVerification = true;
+
     /**
      * @var GenericProvider
      */
@@ -99,6 +101,13 @@ class AuthenticationProvider
         return $this;
     }
 
+    public function setSignatureVerification(bool $flag): self
+    {
+        $this->signatureVerification = $flag;
+
+        return $this;
+    }
+
     /**
      * Handle and validate OAuth response data from SSO v2.
      *
@@ -129,7 +138,10 @@ class AuthenticationProvider
         if (!$jws->verifyIssuer($this->issuer)) {
             throw new \UnexpectedValueException('Token issuer does not match.', 1526220023);
         }
-        $jws->verifySignature($this->getPublicKeys());
+
+        if ($this->signatureVerification) {
+            $jws->verifySignature($this->getPublicKeys());
+        }
 
         $auth = $jws->getEveAuthentication();
 

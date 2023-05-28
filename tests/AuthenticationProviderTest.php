@@ -98,7 +98,7 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws \Exception
      */
-    public function testValidateAuthenticationV2ExceptionWrongSessionState()
+    public function testValidateAuthenticationV2_ExceptionWrongSessionState()
     {
         $this->expectException(\UnexpectedValueException::class);
         $this->expectExceptionCode(1526220012);
@@ -110,7 +110,7 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws \Exception
      */
-    public function testValidateAuthenticationV2ExceptionGetTokenError()
+    public function testValidateAuthenticationV2_ExceptionGetTokenError()
     {
         $this->expectException(\UnexpectedValueException::class);
         $this->expectExceptionCode(1526220013);
@@ -124,7 +124,7 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws \Exception
      */
-    public function testValidateAuthenticationV2ExceptionWrongScopes()
+    public function testValidateAuthenticationV2_ExceptionWrongScopes()
     {
         $this->expectException(\UnexpectedValueException::class);
         $this->expectExceptionCode(1526220014);
@@ -143,7 +143,7 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws \Exception
      */
-    public function testValidateAuthenticationV2ExceptionValidateJWTokenWrongIssuer()
+    public function testValidateAuthenticationV2_ExceptionValidateJWTokenWrongIssuer()
     {
         $this->expectException(\UnexpectedValueException::class);
         $this->expectExceptionCode(1526220023);
@@ -158,7 +158,7 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws \Exception
      */
-    public function testValidateAuthenticationV2ExceptionPublicKeysGetError()
+    public function testValidateAuthenticationV2_ExceptionPublicKeysGetError()
     {
         $this->expectException(\UnexpectedValueException::class);
         $this->expectExceptionCode(1526220031);
@@ -176,7 +176,7 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws \Exception
      */
-    public function testValidateAuthenticationV2ExceptionPublicKeysParseError()
+    public function testValidateAuthenticationV2_ExceptionPublicKeysParseError()
     {
         $this->expectException(\UnexpectedValueException::class);
         $this->expectExceptionCode(1526220032);
@@ -194,7 +194,7 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws \Exception
      */
-    public function testValidateAuthenticationV2PublicKeysCache()
+    public function testValidateAuthenticationV2_PublicKeysCache()
     {
         list($token, $keySet) = TestHelper::createTokenAndKeySet(); // issuer = localhost
 
@@ -216,7 +216,7 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws \Exception
      */
-    public function testValidateAuthenticationV2Success()
+    public function testValidateAuthenticationV2_Success()
     {
         list($token, $keySet) = TestHelper::createTokenAndKeySet(); // issuer = localhost
 
@@ -236,6 +236,26 @@ class AuthenticationProviderTest extends TestCase
         $this->assertSame('hash', $result->getCharacterOwnerHash());
         $this->assertSame(['scope1', 'scope2'], $result->getScopes());
         $this->assertSame($token, $result->getToken()->getToken());
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testValidateAuthenticationV2_NoSignature()
+    {
+        list($token) = TestHelper::createTokenAndKeySet('localhost', 'CHARACTER:EVE:123', []);
+
+        // set responses
+        $this->client->setResponse(
+            new Response(200, [], '{"access_token": ' . json_encode($token) . '}') // for getAccessToken()
+        );
+
+        // run
+        $this->authenticationProvider->setSignatureVerification(false);
+        $result = $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
+
+        // verify
+        $this->assertSame(123, $result->getCharacterId());
     }
 
     /**

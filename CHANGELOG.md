@@ -15,6 +15,8 @@ Other changes:
 - Some entries of the options array from AuthenticationProvider::construct are now optional and have default values
   (see [README.md](README.md)).
 - Added `issuer` to options array from AuthenticationProvider::construct (optional).
+- Added ability to disable signature verification (`AuthenticationProvider::setSignatureVerification()`). It's 
+  enabled by default.
 - Improved signature verification.
 
 ## 3.0.0
