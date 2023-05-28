@@ -2,6 +2,8 @@
 
 ## 4.0.0
 
+May 28, 2023
+
 Breaking changes:
 
 - Dropped PHP 7 support, minimum require PHP version is now 8.0.0.
@@ -19,7 +21,7 @@ Other changes:
   not provided.
 - Added `issuer` to options array from AuthenticationProvider::construct (optional).
 - Added optional $httpClient parameter to AuthenticationProvider::__construct.
-- Added ability to disable signature verification (AuthenticationProvider::setSignatureVerification()). It's 
+- Added ability to disable signature verification (AuthenticationProvider::setSignatureVerification). It's 
   enabled by default.
 - Improved signature verification.
 

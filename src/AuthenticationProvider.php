@@ -201,7 +201,7 @@ class AuthenticationProvider
     }
 
     /**
-     * Revokes a refresh token. Only tested with EVE SSOv2.
+     * Revokes a refresh token.
      *
      * @param AccessTokenInterface $existingToken
      * @throws UnexpectedValueException If revoke URL is missing or token could not be revoked.
