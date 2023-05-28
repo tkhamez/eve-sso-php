@@ -37,17 +37,26 @@ class AuthenticationProviderTest extends TestCase
             'urlRevoke' => 'http://localhost/revoke',
             'issuer' => 'localhost',
         ];
-        $this->authenticationProvider = new AuthenticationProvider($options, []);
-        $this->authenticationProvider->getProvider()->setHttpClient($this->client);
+        $this->authenticationProvider = new AuthenticationProvider($options, [], $this->client);
     }
 
     public function testConstruct_MinimalOptions()
     {
+        $this->client->setResponse(
+            new Response(200, [], '{
+                "issuer": "localhost",
+                "authorization_endpoint": "https://localhost/auth",
+                "token_endpoint": "https://localhost/token",
+                "jwks_uri": "http://localhost/jwks",
+                "revocation_endpoint": "http://localhost/revoke"
+            }')
+        );
+
         new AuthenticationProvider([
             'clientId'     => '123',
             'clientSecret' => 'abc',
             'redirectUri'  => 'https://localhost/callback',
-        ], []);
+        ], [], $this->client);
 
         $this->assertTrue(true); // no exception was thrown
     }

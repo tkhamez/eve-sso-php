@@ -8,15 +8,18 @@ Breaking changes:
 - Removed support for EVE SSO v1, see also
   [SSO Endpoint Deprecations](https://developers.eveonline.com/blog/article/sso-endpoint-deprecations-2).
 - EveAuthentication::jsonSerialize: Renamed `character_name` to `characterName`.
+- AuthenticationProvider::__construct can now also throw an UnexpectedValueException.
 - Removed libraries web-token/jwt-signature-algorithm-ecdsa and web-token/jwt-signature-algorithm-hmac and moved
   web-token/jwt-key-mgmt to require-dev.
 
 Other changes:
 
-- Some entries of the options array from AuthenticationProvider::construct are now optional and have default values
-  (see [README.md](README.md)).
+- Some entries of the options array from AuthenticationProvider::construct are now optional (see 
+  [README.md](README.md)) and have default values that are fetched from the EVE SSO metadata URL if they are 
+  not provided.
 - Added `issuer` to options array from AuthenticationProvider::construct (optional).
-- Added ability to disable signature verification (`AuthenticationProvider::setSignatureVerification()`). It's 
+- Added optional $httpClient parameter to AuthenticationProvider::__construct.
+- Added ability to disable signature verification (AuthenticationProvider::setSignatureVerification()). It's 
   enabled by default.
 - Improved signature verification.
 
@@ -24,7 +27,7 @@ Other changes:
 
 Oct 17, 2021
 
-- Changed constructor parameters of AuthenticationProvider class, see above.
+- Changed constructor parameters of AuthenticationProvider class, see [README.md](README.md).
 - Added AuthenticationProvider::setProvider() method
 - Added AuthenticationProvider::refreshAccessToken() method
 - Added AuthenticationProvider::revokeRefreshToken() method

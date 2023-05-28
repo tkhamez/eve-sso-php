@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Eve\Sso;
 
 use Exception;
+use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use InvalidArgumentException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
@@ -17,6 +19,8 @@ use UnexpectedValueException;
 class AuthenticationProvider
 {
     private bool $signatureVerification = true;
+
+    private ?ClientInterface $httpClient;
 
     private GenericProvider $sso;
 
@@ -43,16 +47,27 @@ class AuthenticationProvider
     private array $keys = [];
 
     /**
+     * Cache of well-known entries.
+     */
+    private array $metadata = [];
+
+    /**
      * @param array $options See README.md
      * @param string[] $scopes Required ESI scopes.
      * @throws InvalidArgumentException If a required option is missing
+     * @throws UnexpectedValueException If EVE SSO metadata could not be fetched.
      * @see ../README.md
      */
-    public function __construct(array $options, array $scopes = [])
-    {
+    public function __construct(
+        array $options,
+        array $scopes = [],
+        ClientInterface $httpClient = null
+    ) {
+        $this->httpClient = $httpClient ?? new Client();
+
         $options = $this->validateOptions($options);
 
-        $this->sso = new GenericProvider($options);
+        $this->sso = new GenericProvider($options, ['httpClient' => $this->httpClient]);
         $this->setScopes($scopes);
 
         $this->clientId = (string)$options['clientId'];
@@ -98,7 +113,6 @@ class AuthenticationProvider
      *
      * @throws UnexpectedValueException For different errors during validation.
      * @throws LogicException If Elliptic Curve key type is not supported by OpenSSL
-     * @throws RuntimeException
      * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
      */
     public function validateAuthenticationV2(
@@ -196,7 +210,7 @@ class AuthenticationProvider
      */
     public function revokeRefreshToken(AccessTokenInterface $existingToken): void
     {
-        $response = $this->getProvider()->getHttpClient()->request('POST', $this->revokeUrl, [
+        $response = $this->httpClient->request('POST', $this->revokeUrl, [
             'auth' => [$this->clientId, $this->clientSecret, 'basic'],
             'form_params' => [
                 'token' => $existingToken->getRefreshToken(),
@@ -213,6 +227,7 @@ class AuthenticationProvider
 
     /**
      * @throws InvalidArgumentException
+     * @throws UnexpectedValueException
      */
     private function validateOptions(array $options): array
     {
@@ -224,21 +239,30 @@ class AuthenticationProvider
             throw new InvalidArgumentException('At least one of the required options is not defined or empty.');
         }
 
-        // Values are from https://login.eveonline.com/.well-known/oauth-authorization-server
-        if (empty($options['urlAuthorize'])) {
-            $options['urlAuthorize'] = 'https://login.eveonline.com/v2/oauth/authorize';
-        }
-        if (empty($options['urlAccessToken'])) {
-            $options['urlAccessToken'] = 'https://login.eveonline.com/v2/oauth/token';
-        }
-        if (empty($options['urlKeySet'])) {
-            $options['urlKeySet'] = 'https://login.eveonline.com/oauth/jwks';
-        }
-        if (empty($options['urlRevoke'])) {
-            $options['urlRevoke'] = 'https://login.eveonline.com/v2/oauth/revoke';
-        }
-        if (empty($options['issuer'])) {
-            $options['issuer'] = 'login.eveonline.com';
+        if (
+            empty($options['urlAuthorize']) ||
+            empty($options['urlAccessToken']) ||
+            empty($options['urlKeySet']) ||
+            empty($options['urlRevoke']) ||
+            empty($options['issuer'])
+        ) {
+            $metadata = $this->getMetadata();
+
+            if (empty($options['urlAuthorize'])) {
+                $options['urlAuthorize'] = $metadata['authorization_endpoint'];
+            }
+            if (empty($options['urlAccessToken'])) {
+                $options['urlAccessToken'] = $metadata['token_endpoint'];
+            }
+            if (empty($options['urlKeySet'])) {
+                $options['urlKeySet'] = $metadata['jwks_uri'];
+            }
+            if (empty($options['urlRevoke'])) {
+                $options['urlRevoke'] = $metadata['revocation_endpoint'];
+            }
+            if (empty($options['issuer'])) {
+                $options['issuer'] = $metadata['issuer'];
+            }
         }
 
         // "urlResourceOwnerDetails" is required by the GenericProvider, but not used in this package.
@@ -259,7 +283,47 @@ class AuthenticationProvider
     }
 
     /**
-     * @throws RuntimeException
+     * @throws UnexpectedValueException
+     */
+    private function getMetadata(): array
+    {
+        if (!empty($this->metadata)) {
+            return $this->metadata;
+        }
+
+        try {
+            $response = $this->httpClient->request(
+                'GET',
+                'https://login.eveonline.com/.well-known/oauth-authorization-server'
+            );
+        } catch (GuzzleException) {
+            throw new UnexpectedValueException('Failed to fetch metadata.', 1526220041);
+        }
+
+        $data = json_decode($response->getBody()->getContents(), true);
+        if (
+            $data === null ||
+            !isset($data['authorization_endpoint']) ||
+            !isset($data['token_endpoint']) ||
+            !isset($data['jwks_uri']) ||
+            !isset($data['revocation_endpoint']) ||
+            !isset($data['issuer'])
+        ) {
+            throw new UnexpectedValueException('Missing entries from metadata URL.', 1526220042);
+        }
+
+        $this->metadata = [
+            'authorization_endpoint' => $data['authorization_endpoint'],
+            'token_endpoint'         => $data['token_endpoint'],
+            'jwks_uri'               => $data['jwks_uri'],
+            'revocation_endpoint'    => $data['revocation_endpoint'],
+            'issuer'                 => $data['issuer'],
+        ];
+
+        return $this->metadata;
+    }
+
+    /**
      * @throws UnexpectedValueException
      */
     private function getPublicKeys(): array
@@ -268,10 +332,8 @@ class AuthenticationProvider
             return $this->keys;
         }
 
-        $client = $this->sso->getHttpClient();
-
         try {
-            $response = $client->request('GET', $this->keySetUri);
+            $response = $this->httpClient->request('GET', $this->keySetUri);
         } catch (GuzzleException) {
             throw new UnexpectedValueException('Failed to get public keys.', 1526220031);
         }
