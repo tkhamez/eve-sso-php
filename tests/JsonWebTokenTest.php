@@ -95,7 +95,7 @@ class JsonWebTokenTest extends TestCase
     {
         $this->expectException(\UnexpectedValueException::class);
         $this->expectExceptionCode(1526220025);
-        $this->expectExceptionMessage('Could not verify token signature.');
+        $this->expectExceptionMessage('Could not verify token signature: There is no key in the key set.');
 
         list($token) = TestHelper::createTokenAndKeySet();
 

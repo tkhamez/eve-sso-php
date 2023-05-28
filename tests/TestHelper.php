@@ -20,10 +20,12 @@ class TestHelper
         ?string $sub = 'CHARACTER:EVE:123',
         ?array $scopes = ['scope1', 'scope2']
     ): array {
-        $jwk = JWKFactory::createRSAKey(2048, ['alg' => 'RS256', 'use' => 'sig']);
+        $kid = 'JWT-Signature-Key';
+        $jwk = JWKFactory::createRSAKey(2048, ['alg' => 'RS256', 'use' => 'sig', 'kid' => $kid]);
         $algorithmManager = new AlgorithmManager([new RS256()]);
         $jwsBuilder = new JWSBuilder($algorithmManager);
-        $payload = (string) json_encode([
+        $payload = (string)json_encode([
+            'kid' => $kid,
             'scp' => $scopes,
             'sub' => $sub,
             'name' => 'Name',
@@ -34,7 +36,7 @@ class TestHelper
         $jws = $jwsBuilder
             ->create()
             ->withPayload($payload)
-            ->addSignature($jwk, ['alg' => $jwk->get('alg')])
+            ->addSignature($jwk, ['alg' => $jwk->get('alg'), 'kid' => $kid])
             ->build();
         $token = (new CompactSerializer())->serialize($jws);
         $keySet = [$jwk->toPublic()->jsonSerialize()];

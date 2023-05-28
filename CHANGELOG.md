@@ -7,12 +7,15 @@ Breaking changes:
 - Removed support for EVE SSO v1, see also
   [SSO Endpoint Deprecations](https://developers.eveonline.com/blog/article/sso-endpoint-deprecations-2).
 - EveAuthentication::jsonSerialize: Renamed `character_name` to `characterName`.
+- Removed libraries web-token/jwt-signature-algorithm-ecdsa and web-token/jwt-signature-algorithm-hmac and moved
+  web-token/jwt-key-mgmt to require-dev.
 
 Other changes:
 
 - Some entries of the options array from AuthenticationProvider::construct are now optional and have default values
   (see [README.md](README.md)).
 - Added `issuer` to options array from AuthenticationProvider::construct (optional).
+- Improved signature verification.
 
 ## 3.0.0
 

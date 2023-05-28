@@ -7,8 +7,6 @@ namespace Eve\Sso;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Core\JWKSet;
-use Jose\Component\Signature\Algorithm\ES256;
-use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\Algorithm\RS256;
 use Jose\Component\Signature\JWS;
 use Jose\Component\Signature\JWSVerifier;
@@ -22,17 +20,17 @@ use League\OAuth2\Client\Token\AccessTokenInterface;
 class JsonWebToken
 {
     /**
-     * @var AccessTokenInterface 
+     * @var AccessTokenInterface
      */
     private $token;
 
     /**
-     * @var JWS 
+     * @var JWS
      */
     private $jws;
 
     /**
-     * @var \stdClass 
+     * @var \stdClass
      */
     private $payload;
 
@@ -80,25 +78,48 @@ class JsonWebToken
      */
     public function verifySignature(array $publicKeys): bool
     {
+        $keyIds = [];
+        $algorithms = [];
+        foreach ($this->jws->getSignatures() as $signature) {
+            $alg = $signature->getProtectedHeader()['alg'];
+            if ($alg === 'RS256') {
+                $keyIds[] = $signature->getProtectedHeader()['kid'];
+                $algorithms[] = new RS256();
+            }
+        }
+
         $keys = [];
-        foreach ($publicKeys as $key) {
+        foreach ($publicKeys as $publicKey) {
+            if (!in_array($publicKey['kid'], $keyIds) || $publicKey['kid'] !== $this->payload->kid) {
+                continue;
+            }
             try {
-                $keys[] = new JWK($key);
+                $keys[] = new JWK($publicKey);
             } catch(\InvalidArgumentException $e) {
                 throw new \UnexpectedValueException('Invalid public key.', 1526220024);
             }
         }
-        $algorithmManager = new AlgorithmManager([new RS256(), new ES256(), new HS256()]);
+
+        $algorithmManager = new AlgorithmManager($algorithms);
         $jwsVerifier = new JWSVerifier($algorithmManager);
-        try {
-            $valid = $jwsVerifier->verifyWithKeySet($this->jws, new JWKSet($keys), 0);
-        } catch(\InvalidArgumentException $e) {
-            throw new \UnexpectedValueException('Could not verify token signature.', 1526220025);
+
+        $valid = false;
+        for ($i = 0; $i < count($this->jws->getSignatures()); $i++) {
+            try {
+                $valid = $jwsVerifier->verifyWithKeySet($this->jws, new JWKSet($keys), $i);
+            } catch(\InvalidArgumentException $e) {
+                throw new \UnexpectedValueException(
+                    'Could not verify token signature: ' . $e->getMessage(), 1526220025
+                );
+            }
+            if ($valid) {
+                break;
+            }
         }
         if (!$valid) {
             throw new \UnexpectedValueException('Invalid token signature.', 1526220026);
         }
-        
+
         return true;
     }
 
