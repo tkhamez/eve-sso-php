@@ -8,6 +8,11 @@ Breaking changes:
   [SSO Endpoint Deprecations](https://developers.eveonline.com/blog/article/sso-endpoint-deprecations-2).
 - EveAuthentication::jsonSerialize: Renamed `character_name` to `characterName`.
 
+Other changes:
+
+- Some entries of the options array from AuthenticationProvider::construct are now optional and have default values
+  (see [README.md](README.md)).
+
 ## 3.0.0
 
 Oct 17, 2021

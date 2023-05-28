@@ -47,10 +47,6 @@ class AuthenticationProviderTest extends TestCase
             'clientId'     => '123',
             'clientSecret' => 'abc',
             'redirectUri'  => 'https://localhost/callback',
-            'urlAuthorize' => 'https://localhost/auth',
-            'urlAccessToken' => 'https://localhost/token',
-            'urlKeySet' => '',
-            'urlRevoke' => 'http://localhost/revoke',
         ], []);
 
         $this->assertTrue(true); // no exception was thrown
@@ -66,10 +62,6 @@ class AuthenticationProviderTest extends TestCase
             #'clientId'     => '123',
             'clientSecret' => 'abc',
             'redirectUri'  => 'https://localhost/callback',
-            'urlAuthorize' => 'https://localhost/auth',
-            'urlAccessToken' => 'https://localhost/token',
-            'urlKeySet' => 'http://localhost/jwks',
-            'urlRevoke' => 'http://localhost/revoke',
         ], []);
     }
 

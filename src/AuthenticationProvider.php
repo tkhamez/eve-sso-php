@@ -53,27 +53,12 @@ class AuthenticationProvider
     /**
      * @param array $options See README.md
      * @param string[] $scopes Required ESI scopes.
-     * @see GenericProvider::__construct()
-     * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
+     * @throws \InvalidArgumentException If a required option is missing
+     * @see ../README.md
      */
     public function __construct(array $options, array $scopes = [])
     {
-        if (
-            empty($options['clientId']) ||
-            empty($options['clientSecret']) ||
-            empty($options['redirectUri']) ||
-            empty($options['urlAuthorize']) ||
-            empty($options['urlAccessToken']) ||
-            !isset($options['urlKeySet']) ||
-            empty($options['urlRevoke'])
-        ) {
-            throw new \InvalidArgumentException('At least one of the required options is not defined or empty.');
-        }
-
-        // "urlResourceOwnerDetails" is required by the GenericProvider, but not used here.
-        if (!isset($options['urlResourceOwnerDetails'])) {
-            $options['urlResourceOwnerDetails'] = '';
-        }
+        $options = $this->validateOptions($options);
 
         $this->sso = new GenericProvider($options);
         $this->setScopes($scopes);
@@ -114,6 +99,7 @@ class AuthenticationProvider
      * @throws \UnexpectedValueException For different errors during validation.
      * @throws \LogicException If Elliptic Curve key type is not supported by OpenSSL
      * @throws \RuntimeException
+     * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
      */
     public function validateAuthenticationV2(
         string $requestState, 
@@ -220,6 +206,39 @@ class AuthenticationProvider
                 'Error revoking token: ' . $response->getStatusCode() . ' ' . $response->getReasonPhrase()
             );
         }
+    }
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    private function validateOptions(array $options): array
+    {
+        if (
+            empty($options['clientId']) ||
+            empty($options['clientSecret']) ||
+            empty($options['redirectUri'])
+        ) {
+            throw new \InvalidArgumentException('At least one of the required options is not defined or empty.');
+        }
+
+        // Values are from https://login.eveonline.com/.well-known/oauth-authorization-server
+        if (empty($options['urlAuthorize'])) {
+            $options['urlAuthorize'] = 'https://login.eveonline.com/v2/oauth/authorize';
+        }
+        if (empty($options['urlAccessToken'])) {
+            $options['urlAccessToken'] = 'https://login.eveonline.com/v2/oauth/token';
+        }
+        if (empty($options['urlKeySet'])) {
+            $options['urlKeySet'] = 'https://login.eveonline.com/oauth/jwks';
+        }
+        if (empty($options['urlRevoke'])) {
+            $options['urlRevoke'] = 'https://login.eveonline.com/v2/oauth/revoke';
+        }
+
+        // "urlResourceOwnerDetails" is required by the GenericProvider, but not used in this package.
+        $options['urlResourceOwnerDetails'] = '';
+
+        return $options;
     }
 
     private function verifyScopes(array $scopes): bool

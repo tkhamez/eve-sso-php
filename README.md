@@ -19,9 +19,12 @@ composer require tkhamez/eve-sso
 // Initiate provider object for login and callback URLs
 $provider = new Eve\Sso\AuthenticationProvider(
     [
+        // Required
         'clientId'       => 'your-EVE-app-client-ID',
         'clientSecret'   => 'your-EVE-app-secret-key',
         'redirectUri'    => 'https://your-callback.url',
+        
+        // Optional, these are the default values.
         'urlAuthorize'   => 'https://login.eveonline.com/v2/oauth/authorize',
         'urlAccessToken' => 'https://login.eveonline.com/v2/oauth/token',
         'urlKeySet'      => 'https://login.eveonline.com/oauth/jwks',
