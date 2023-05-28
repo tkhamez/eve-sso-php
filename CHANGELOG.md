@@ -2,8 +2,11 @@
 
 ## 4.0.0
 
+Breaking changes:
+
 - Removed support for EVE SSO v1, see also
   [SSO Endpoint Deprecations](https://developers.eveonline.com/blog/article/sso-endpoint-deprecations-2).
+- EveAuthentication::jsonSerialize: Renamed `character_name` to `characterName`.
 
 ## 3.0.0
 

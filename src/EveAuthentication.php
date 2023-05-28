@@ -89,7 +89,7 @@ class EveAuthentication implements \JsonSerializable
     {
         return [
             'characterId' => $this->characterId,
-            'character_name' => $this->characterName,
+            'characterName' => $this->characterName,
             'token' => $this->token
         ];
     }
