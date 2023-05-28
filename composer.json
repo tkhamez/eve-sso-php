@@ -4,18 +4,18 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^7.3|^8.0",
+        "php": "^8.0",
         "ext-gmp": "*",
         "ext-json": "*",
-        "guzzlehttp/guzzle": "^7.2",
-        "league/oauth2-client": "^2.2",
+        "guzzlehttp/guzzle": "^7.7",
+        "league/oauth2-client": "^2.7",
         "web-token/jwt-core": "^2.2",
-        "web-token/jwt-signature": "^2.0",
-        "web-token/jwt-signature-algorithm-rsa": "^2.0"
+        "web-token/jwt-signature": "^2.2",
+        "web-token/jwt-signature-algorithm-rsa": "^2.2"
     },
     "require-dev": {
-        "web-token/jwt-key-mgmt": "^2.0",
-        "phpunit/phpunit": "^9.4"
+        "phpunit/phpunit": "^9.6",
+        "web-token/jwt-key-mgmt": "^2.2"
     },
     "autoload": {
         "psr-4": {
@@ -29,7 +29,7 @@
     },
     "config": {
         "platform": {
-            "php": "7.3.0"
+            "php": "8.0.0"
         },
         "sort-packages": true
     }

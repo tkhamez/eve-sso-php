@@ -6,24 +6,23 @@ namespace Test;
 
 use Eve\Sso\AuthenticationProvider;
 use Eve\Sso\InvalidGrantException;
+use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\TransferException;
 use GuzzleHttp\Psr7\Response;
+use InvalidArgumentException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Token\AccessToken;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use Throwable;
+use UnexpectedValueException;
 
 class AuthenticationProviderTest extends TestCase
 {
-    /**
-     * @var TestClient
-     */
-    private $client;
+    private TestClient $client;
 
-    /**
-     * @var AuthenticationProvider
-     */
-    private $authenticationProvider;
+    private AuthenticationProvider $authenticationProvider;
 
     public function setUp(): void
     {
@@ -55,7 +54,7 @@ class AuthenticationProviderTest extends TestCase
 
     public function testConstruct_Exception()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionCode(0);
         $this->expectExceptionMessage('At least one of the required options is not defined or empty.');
 
@@ -76,7 +75,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testGenerateState()
     {
@@ -87,7 +86,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testBuildLoginUrl()
     {
@@ -96,11 +95,11 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testValidateAuthenticationV2_ExceptionWrongSessionState()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220012);
         $this->expectExceptionMessage('OAuth state mismatch.');
 
@@ -108,11 +107,11 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testValidateAuthenticationV2_ExceptionGetTokenError()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220013);
         $this->expectExceptionMessage('Error when requesting the token.');
 
@@ -122,11 +121,11 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testValidateAuthenticationV2_ExceptionWrongScopes()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220014);
         $this->expectExceptionMessage('Required scopes do not match.');
 
@@ -141,11 +140,11 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testValidateAuthenticationV2_ExceptionValidateJWTokenWrongIssuer()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220023);
         $this->expectExceptionMessage('Token issuer does not match.');
 
@@ -156,11 +155,11 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testValidateAuthenticationV2_ExceptionPublicKeysGetError()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220031);
         $this->expectExceptionMessage('Failed to get public keys.');
 
@@ -174,11 +173,11 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testValidateAuthenticationV2_ExceptionPublicKeysParseError()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220032);
         $this->expectExceptionMessage('Failed to parse public keys.');
 
@@ -192,7 +191,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testValidateAuthenticationV2_PublicKeysCache()
     {
@@ -214,7 +213,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testValidateAuthenticationV2_Success()
     {
@@ -239,7 +238,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testValidateAuthenticationV2_NoSignature()
     {
@@ -259,7 +258,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testValidateAuthenticationV2SuccessIssuerWithHttps()
     {
@@ -273,7 +272,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testRefreshAccessToken_ServerException()
     {
@@ -285,7 +284,7 @@ class AuthenticationProviderTest extends TestCase
             'expires' => 1349067601 // 2012-10-01 + 1
         ]);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionCode(0);
         $this->expectExceptionMessage('An OAuth server error ');
 
@@ -293,7 +292,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testRefreshAccessToken_IdentityProviderException()
     {
@@ -313,7 +312,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testRefreshAccessToken_NotExpired()
     {
@@ -327,7 +326,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testRefreshAccessToken_NewToken()
     {
@@ -352,7 +351,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function testRevokeAccessToken_RequestError()
     {
@@ -368,7 +367,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function testRevokeAccessToken_Failure()
     {
@@ -376,7 +375,7 @@ class AuthenticationProviderTest extends TestCase
 
         $token = new AccessToken(['access_token' => 'at', 'refresh_token' => 'rt']);
 
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(0);
         $this->expectExceptionMessage('Error revoking token: 400 Bad Request');
 
@@ -384,7 +383,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function testRevokeAccessToken_OK()
     {

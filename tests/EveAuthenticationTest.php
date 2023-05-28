@@ -5,20 +5,15 @@ declare(strict_types=1);
 namespace Test;
 
 use Eve\Sso\EveAuthentication;
+use Exception;
 use League\OAuth2\Client\Token\AccessToken;
 use PHPUnit\Framework\TestCase;
 
 class EveAuthenticationTest extends TestCase
 {
-    /**
-     * @var AccessToken
-     */
-    private $token;
+    private AccessToken $token;
 
-    /**
-     * @var EveAuthentication
-     */
-    private $auth;
+    private EveAuthentication $auth;
 
     protected function setUp(): void
     {
@@ -52,7 +47,7 @@ class EveAuthenticationTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testJsonSerialize()
     {

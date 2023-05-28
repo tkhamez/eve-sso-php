@@ -4,34 +4,23 @@ declare(strict_types=1);
 
 namespace Eve\Sso;
 
+use JsonSerializable;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 
-class EveAuthentication implements \JsonSerializable
+class EveAuthentication implements JsonSerializable
 {
-    /**
-     * @var int
-     */
-    private $characterId;
+    private int $characterId;
 
-    /**
-     * @var string
-     */
-    private $characterName;
+    private string $characterName;
 
-    /**
-     * @var string
-     */
-    private $characterOwnerHash;
+    private string $characterOwnerHash;
 
     /**
      * @var string[]
      */
-    private $scopes;
+    private array $scopes;
 
-    /**
-     * @var AccessTokenInterface
-     */
-    private $token;
+    private AccessTokenInterface $token;
 
     /**
      * @param int $characterId

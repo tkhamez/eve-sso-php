@@ -4,6 +4,7 @@
 
 Breaking changes:
 
+- Dropped PHP 7 support, minimum require PHP version is now 8.0.0.
 - Removed support for EVE SSO v1, see also
   [SSO Endpoint Deprecations](https://developers.eveonline.com/blog/article/sso-endpoint-deprecations-2).
 - EveAuthentication::jsonSerialize: Renamed `character_name` to `characterName`.

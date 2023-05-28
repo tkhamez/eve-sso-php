@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Eve\Sso;
 
+use Exception;
+use InvalidArgumentException;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Core\JWKSet;
@@ -13,30 +15,24 @@ use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
 use League\OAuth2\Client\Token\AccessTokenInterface;
+use LogicException;
+use stdClass;
+use UnexpectedValueException;
 
 /**
  * Parse and verify a JSON Web Token.
  */
 class JsonWebToken
 {
-    /**
-     * @var AccessTokenInterface
-     */
-    private $token;
+    private AccessTokenInterface $token;
 
-    /**
-     * @var JWS
-     */
-    private $jws;
+    private JWS $jws;
 
-    /**
-     * @var \stdClass
-     */
-    private $payload;
+    private ?stdClass $payload;
 
     /**
      * @param AccessTokenInterface $token Must contain an EVE SSOv2 JSON Web Token
-     * @throws \UnexpectedValueException
+     * @throws UnexpectedValueException
      */
     public function __construct(AccessTokenInterface $token)
     {
@@ -45,14 +41,14 @@ class JsonWebToken
         $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
         try {
             $this->jws = $serializerManager->unserialize($this->token->getToken());
-        } catch (\Exception $e) {
-            throw new \UnexpectedValueException('Could not parse token.', 1526220021);
+        } catch (Exception) {
+            throw new UnexpectedValueException('Could not parse token.', 1526220021);
         }
 
         // parse data
         $this->payload = json_decode($this->jws->getPayload());
         if ($this->payload === null || !isset($this->payload->sub)) {
-            throw new \UnexpectedValueException('Invalid token data.', 1526220022);
+            throw new UnexpectedValueException('Invalid token data.', 1526220022);
         }
     }
 
@@ -61,7 +57,7 @@ class JsonWebToken
         // see https://github.com/ccpgames/sso-issues/issues/41
 
         $issuerWithHttps = $issuer;
-        if (strpos($issuer, 'http') !== 0) {
+        if (!str_starts_with($issuer, 'http')) {
             $issuerWithHttps = "https://$issuer";
         }
 
@@ -72,8 +68,8 @@ class JsonWebToken
 
     /**
      * @param array $publicKeys
-     * @throws \LogicException If Elliptic Curve key type is not supported by OpenSSL
-     * @throws \UnexpectedValueException
+     * @throws LogicException If Elliptic Curve key type is not supported by OpenSSL
+     * @throws UnexpectedValueException
      * @return bool
      */
     public function verifySignature(array $publicKeys): bool
@@ -95,8 +91,8 @@ class JsonWebToken
             }
             try {
                 $keys[] = new JWK($publicKey);
-            } catch(\InvalidArgumentException $e) {
-                throw new \UnexpectedValueException('Invalid public key.', 1526220024);
+            } catch(InvalidArgumentException) {
+                throw new UnexpectedValueException('Invalid public key.', 1526220024);
             }
         }
 
@@ -107,8 +103,8 @@ class JsonWebToken
         for ($i = 0; $i < count($this->jws->getSignatures()); $i++) {
             try {
                 $valid = $jwsVerifier->verifyWithKeySet($this->jws, new JWKSet($keys), $i);
-            } catch(\InvalidArgumentException $e) {
-                throw new \UnexpectedValueException(
+            } catch(InvalidArgumentException $e) {
+                throw new UnexpectedValueException(
                     'Could not verify token signature: ' . $e->getMessage(), 1526220025
                 );
             }
@@ -117,7 +113,7 @@ class JsonWebToken
             }
         }
         if (!$valid) {
-            throw new \UnexpectedValueException('Invalid token signature.', 1526220026);
+            throw new UnexpectedValueException('Invalid token signature.', 1526220026);
         }
 
         return true;

@@ -5,17 +5,19 @@ declare(strict_types=1);
 namespace Test;
 
 use Eve\Sso\JsonWebToken;
+use Exception;
 use League\OAuth2\Client\Token\AccessToken;
 use PHPUnit\Framework\TestCase;
+use UnexpectedValueException;
 
 class JsonWebTokenTest extends TestCase
 {
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testConstructExceptionParseError()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220021);
         $this->expectExceptionMessage('Could not parse token.');
 
@@ -24,11 +26,11 @@ class JsonWebTokenTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testConstructExceptionInvalidData()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220022);
         $this->expectExceptionMessage('Invalid token data.');
 
@@ -39,7 +41,7 @@ class JsonWebTokenTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testConstruct()
     {
@@ -52,7 +54,7 @@ class JsonWebTokenTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testVerifyIssuer()
     {
@@ -72,11 +74,11 @@ class JsonWebTokenTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testVerifySignatureExceptionInvalidPublicKey()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220024);
         $this->expectExceptionMessage('Invalid public key.');
 
@@ -89,11 +91,11 @@ class JsonWebTokenTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testVerifySignatureExceptionSignatureError()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220025);
         $this->expectExceptionMessage('Could not verify token signature: There is no key in the key set.');
 
@@ -105,11 +107,11 @@ class JsonWebTokenTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testVerifySignatureExceptionSignatureInvalid()
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220026);
         $this->expectExceptionMessage('Invalid token signature.');
 
@@ -122,7 +124,7 @@ class JsonWebTokenTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testVerifySignature()
     {
@@ -135,7 +137,7 @@ class JsonWebTokenTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testGetEveAuthentication()
     {

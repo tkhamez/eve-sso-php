@@ -11,15 +11,9 @@ use Psr\Http\Message\ResponseInterface;
 
 class TestClient extends Client
 {
-    /**
-     * @var ResponseInterface[]
-     */
-    private $responses = [];
+    private array $responses = [];
 
-    /**
-     * @param ResponseInterface|GuzzleException ...$responses
-     */
-    public function setResponse(...$responses)
+    public function setResponse(ResponseInterface|GuzzleException ...$responses): void
     {
         $this->responses = $responses;
     }
@@ -33,10 +27,7 @@ class TestClient extends Client
     }
 
     /**
-     * @param string $method
      * @param string $uri
-     * @param array $options
-     * @return ResponseInterface
      * @throws GuzzleException
      */
     public function request(string $method, $uri = '', array $options = []): ResponseInterface

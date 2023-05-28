@@ -4,63 +4,48 @@ declare(strict_types=1);
 
 namespace Eve\Sso;
 
+use Exception;
 use GuzzleHttp\Exception\GuzzleException;
+use InvalidArgumentException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Token\AccessTokenInterface;
+use LogicException;
+use RuntimeException;
+use UnexpectedValueException;
 
 class AuthenticationProvider
 {
-    private $signatureVerification = true;
+    private bool $signatureVerification = true;
 
-    /**
-     * @var GenericProvider
-     */
-    private $sso;
+    private GenericProvider $sso;
 
     /**
      * Scopes for EVE SSO login.
      *
      * @var string[]
      */
-    private $scopes = [];
+    private array $scopes = [];
 
-    /**
-     * @var string
-     */
-    private $clientId;
+    private string $clientId;
 
-    /**
-     * @var string
-     */
-    private $clientSecret;
+    private string $clientSecret;
 
-    /**
-     * @var string|null
-     */
-    private $keySetUri;
+    private string $keySetUri;
 
-    /**
-     * @var string|null
-     */
-    private $revokeUrl;
+    private string $revokeUrl;
 
-    /**
-     * @var string|null
-     */
-    private $issuer;
+    private string $issuer;
 
     /**
      * Cache of JSON Web Key Set.
-     *
-     * @var array|null
      */
-    private $keys;
+    private array $keys = [];
 
     /**
      * @param array $options See README.md
      * @param string[] $scopes Required ESI scopes.
-     * @throws \InvalidArgumentException If a required option is missing
+     * @throws InvalidArgumentException If a required option is missing
      * @see ../README.md
      */
     public function __construct(array $options, array $scopes = [])
@@ -70,11 +55,11 @@ class AuthenticationProvider
         $this->sso = new GenericProvider($options);
         $this->setScopes($scopes);
 
-        $this->clientId = $options['clientId'];
-        $this->clientSecret = $options['clientSecret'];
-        $this->keySetUri = $options['urlKeySet'];
-        $this->revokeUrl = $options['urlRevoke'];
-        $this->issuer = $options['issuer'];
+        $this->clientId = (string)$options['clientId'];
+        $this->clientSecret = (string)$options['clientSecret'];
+        $this->keySetUri = (string)$options['urlKeySet'];
+        $this->revokeUrl = (string)$options['urlRevoke'];
+        $this->issuer = (string)$options['issuer'];
     }
 
     public function setProvider(GenericProvider $provider): void
@@ -111,9 +96,9 @@ class AuthenticationProvider
     /**
      * Handle and validate OAuth response data from SSO v2.
      *
-     * @throws \UnexpectedValueException For different errors during validation.
-     * @throws \LogicException If Elliptic Curve key type is not supported by OpenSSL
-     * @throws \RuntimeException
+     * @throws UnexpectedValueException For different errors during validation.
+     * @throws LogicException If Elliptic Curve key type is not supported by OpenSSL
+     * @throws RuntimeException
      * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
      */
     public function validateAuthenticationV2(
@@ -123,20 +108,20 @@ class AuthenticationProvider
     ): EveAuthentication {
         // check OAuth state parameter
         if ($requestState !== $sessionState) {
-            throw new \UnexpectedValueException('OAuth state mismatch.', 1526220012);
+            throw new UnexpectedValueException('OAuth state mismatch.', 1526220012);
         }
 
         // get token
         try {
             $token = $this->sso->getAccessToken('authorization_code', ['code' => $code]);
-        } catch (\Exception $e) {
-            throw new \UnexpectedValueException('Error when requesting the token.', 1526220013);
+        } catch (Exception) {
+            throw new UnexpectedValueException('Error when requesting the token.', 1526220013);
         }
 
         // parse and verify token
         $jws = new JsonWebToken($token);
         if (!$jws->verifyIssuer($this->issuer)) {
-            throw new \UnexpectedValueException('Token issuer does not match.', 1526220023);
+            throw new UnexpectedValueException('Token issuer does not match.', 1526220023);
         }
 
         if ($this->signatureVerification) {
@@ -147,7 +132,7 @@ class AuthenticationProvider
 
         // verify scopes (user can manipulate the SSO login URL)
         if (!$this->verifyScopes($auth->getScopes())) {
-            throw new \UnexpectedValueException('Required scopes do not match.', 1526220014);
+            throw new UnexpectedValueException('Required scopes do not match.', 1526220014);
         }
 
         return $auth;
@@ -164,7 +149,7 @@ class AuthenticationProvider
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function generateState(string $statePrefix = ''): string
     {
@@ -177,7 +162,7 @@ class AuthenticationProvider
      * @param AccessTokenInterface $existingToken
      * @return AccessTokenInterface A new object if the token was refreshed
      * @throws InvalidGrantException For "invalid_grant" error, i.e. invalid or revoked refresh token.
-     * @throws \RuntimeException For all other errors.
+     * @throws RuntimeException For all other errors.
      */
     public function refreshAccessToken(AccessTokenInterface $existingToken): AccessTokenInterface
     {
@@ -188,12 +173,12 @@ class AuthenticationProvider
                     'refresh_token',
                     ['refresh_token' => (string)$existingToken->getRefreshToken()]
                 );
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 if ($e instanceof IdentityProviderException && $e->getMessage() === 'invalid_grant') {
                     // invalid_grant = e. g. invalid or revoked refresh token
                     throw new InvalidGrantException();
                 } else {
-                    throw new \RuntimeException($e->getMessage());
+                    throw new RuntimeException($e->getMessage());
                 }
             }
         }
@@ -205,7 +190,7 @@ class AuthenticationProvider
      * Revokes a refresh token. Only tested with EVE SSOv2.
      *
      * @param AccessTokenInterface $existingToken
-     * @throws \UnexpectedValueException If revoke URL is missing or token could not be revoked.
+     * @throws UnexpectedValueException If revoke URL is missing or token could not be revoked.
      * @throws GuzzleException Any other error.
      * @see https://github.com/esi/esi-docs/blob/master/docs/sso/revoking_refresh_tokens.md
      */
@@ -220,14 +205,14 @@ class AuthenticationProvider
         ]);
 
         if ($response->getStatusCode() !== 200) {
-            throw new \UnexpectedValueException(
+            throw new UnexpectedValueException(
                 'Error revoking token: ' . $response->getStatusCode() . ' ' . $response->getReasonPhrase()
             );
         }
     }
 
     /**
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     private function validateOptions(array $options): array
     {
@@ -236,7 +221,7 @@ class AuthenticationProvider
             empty($options['clientSecret']) ||
             empty($options['redirectUri'])
         ) {
-            throw new \InvalidArgumentException('At least one of the required options is not defined or empty.');
+            throw new InvalidArgumentException('At least one of the required options is not defined or empty.');
         }
 
         // Values are from https://login.eveonline.com/.well-known/oauth-authorization-server
@@ -274,8 +259,8 @@ class AuthenticationProvider
     }
 
     /**
-     * @throws \RuntimeException
-     * @throws \UnexpectedValueException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
     private function getPublicKeys(): array
     {
@@ -287,13 +272,13 @@ class AuthenticationProvider
 
         try {
             $response = $client->request('GET', $this->keySetUri);
-        } catch (GuzzleException $e) {
-            throw new \UnexpectedValueException('Failed to get public keys.', 1526220031);
+        } catch (GuzzleException) {
+            throw new UnexpectedValueException('Failed to get public keys.', 1526220031);
         }
 
         $keySet = json_decode($response->getBody()->getContents(), true);
         if ($keySet === null || !isset($keySet['keys']) || !is_array($keySet['keys'])) {
-            throw new \UnexpectedValueException('Failed to parse public keys.', 1526220032);
+            throw new UnexpectedValueException('Failed to parse public keys.', 1526220032);
         }
 
         $this->keys = $keySet['keys'];

@@ -56,8 +56,3 @@ try {
 docker build --tag eve-sso .
 docker run -it --mount type=bind,source="$(pwd)",target=/app --workdir /app eve-sso /bin/sh
 ```
-
-Run tests with coverage:
-```shell
-XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html coverage
-```

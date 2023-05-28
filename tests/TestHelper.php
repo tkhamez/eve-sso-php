@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Test;
 
+use Exception;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\RS256;
@@ -13,7 +14,7 @@ use Jose\Component\Signature\Serializer\CompactSerializer;
 class TestHelper
 {
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function createTokenAndKeySet(
         string $issuer = 'localhost',
