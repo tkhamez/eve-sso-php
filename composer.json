@@ -25,7 +25,7 @@
     },
     "scripts": {
         "test": "phpunit",
-        "test:coverage": "phpunit --coverage-html coverage"
+        "test:coverage": "phpunit --coverage-html xdebug/coverage"
     },
     "config": {
         "platform": {
