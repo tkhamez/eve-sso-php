@@ -20,8 +20,6 @@ class AuthenticationProvider
 {
     private bool $signatureVerification = true;
 
-    private ?ClientInterface $httpClient;
-
     private GenericProvider $sso;
 
     /**
@@ -47,11 +45,6 @@ class AuthenticationProvider
     private array $keys = [];
 
     /**
-     * Cache of well-known entries.
-     */
-    private array $metadata = [];
-
-    /**
      * @param array $options See README.md
      * @param string[] $scopes Required ESI scopes.
      * @throws InvalidArgumentException If a required option is missing
@@ -61,7 +54,7 @@ class AuthenticationProvider
     public function __construct(
         array $options,
         array $scopes = [],
-        ClientInterface $httpClient = null
+        private ?ClientInterface $httpClient = null
     ) {
         $this->httpClient = $httpClient ?? new Client();
 
@@ -173,7 +166,6 @@ class AuthenticationProvider
     /**
      * Refreshes the access token if necessary.
      *
-     * @param AccessTokenInterface $existingToken
      * @return AccessTokenInterface A new object if the token was refreshed
      * @throws InvalidGrantException For "invalid_grant" error, i.e. invalid or revoked refresh token.
      * @throws RuntimeException For all other errors.
@@ -203,7 +195,6 @@ class AuthenticationProvider
     /**
      * Revokes a refresh token.
      *
-     * @param AccessTokenInterface $existingToken
      * @throws UnexpectedValueException If revoke URL is missing or token could not be revoked.
      * @throws GuzzleException Any other error.
      * @see https://github.com/esi/esi-docs/blob/master/docs/sso/revoking_refresh_tokens.md
@@ -287,9 +278,7 @@ class AuthenticationProvider
      */
     private function getMetadata(): array
     {
-        if (!empty($this->metadata)) {
-            return $this->metadata;
-        }
+        // This is only called once via constructor.
 
         try {
             $response = $this->httpClient->request(
@@ -312,15 +301,13 @@ class AuthenticationProvider
             throw new UnexpectedValueException('Missing entries from metadata URL.', 1526220042);
         }
 
-        $this->metadata = [
+        return [
             'authorization_endpoint' => $data['authorization_endpoint'],
             'token_endpoint'         => $data['token_endpoint'],
             'jwks_uri'               => $data['jwks_uri'],
             'revocation_endpoint'    => $data['revocation_endpoint'],
             'issuer'                 => $data['issuer'],
         ];
-
-        return $this->metadata;
     }
 
     /**

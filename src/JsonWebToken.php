@@ -24,8 +24,6 @@ use UnexpectedValueException;
  */
 class JsonWebToken
 {
-    private AccessTokenInterface $token;
-
     private JWS $jws;
 
     private ?stdClass $payload;
@@ -34,10 +32,8 @@ class JsonWebToken
      * @param AccessTokenInterface $token Must contain an EVE SSOv2 JSON Web Token
      * @throws UnexpectedValueException
      */
-    public function __construct(AccessTokenInterface $token)
+    public function __construct(private AccessTokenInterface $token)
     {
-        $this->token = $token;
-
         $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
         try {
             $this->jws = $serializerManager->unserialize($this->token->getToken());
@@ -67,10 +63,8 @@ class JsonWebToken
     }
 
     /**
-     * @param array $publicKeys
      * @throws LogicException If Elliptic Curve key type is not supported by OpenSSL
      * @throws UnexpectedValueException
-     * @return bool
      */
     public function verifySignature(array $publicKeys): bool
     {
@@ -86,7 +80,11 @@ class JsonWebToken
 
         $keys = [];
         foreach ($publicKeys as $publicKey) {
-            if (!in_array($publicKey['kid'], $keyIds) || $publicKey['kid'] !== $this->payload->kid) {
+            if (
+                !isset($publicKey['kid']) ||
+                !in_array($publicKey['kid'], $keyIds) ||
+                $publicKey['kid'] !== $this->payload->kid
+            ) {
                 continue;
             }
             try {

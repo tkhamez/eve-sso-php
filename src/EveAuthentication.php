@@ -9,38 +9,16 @@ use League\OAuth2\Client\Token\AccessTokenInterface;
 
 class EveAuthentication implements JsonSerializable
 {
-    private int $characterId;
-
-    private string $characterName;
-
-    private string $characterOwnerHash;
-
     /**
-     * @var string[]
-     */
-    private array $scopes;
-
-    private AccessTokenInterface $token;
-
-    /**
-     * @param int $characterId
-     * @param string $characterName
-     * @param string $characterOwnerHash
-     * @param AccessTokenInterface $token
      * @param string[] $scopes
      */
     public function __construct(
-        int $characterId,
-        string $characterName,
-        string $characterOwnerHash,
-        AccessTokenInterface $token,
-        array $scopes = []
+        private int $characterId,
+        private string $characterName,
+        private string $characterOwnerHash,
+        private AccessTokenInterface $token,
+        private array $scopes = []
     ) {
-        $this->characterId = $characterId;
-        $this->characterName = $characterName;
-        $this->characterOwnerHash = $characterOwnerHash;
-        $this->token = $token;
-        $this->scopes = $scopes;
     }
 
     public function getCharacterId(): int
