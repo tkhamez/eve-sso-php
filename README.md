@@ -16,7 +16,7 @@ composer require tkhamez/eve-sso
 ## Example Usage
 
 ```php
-// Initiate provider object for login and callback URLs
+// Initiate provider object
 $provider = new Eve\Sso\AuthenticationProvider(
     [
         // required
@@ -34,18 +34,41 @@ $provider = new Eve\Sso\AuthenticationProvider(
     ],
     ['esi-mail.read_mail.v1', 'esi-skills.read_skills.v1'], // add all required scopes
 );
+```
 
+```php
 // Login URL
 session_start();
 $_SESSION['state'] = $provider->generateState();
 $loginUrl = $provider->buildLoginUrl($_SESSION['state']);
 header("Location: $loginUrl");
+```
 
+```php
 // Callback URL
 session_start();
 try {
     $auth = $provider->validateAuthenticationV2($_GET['state'], $_SESSION['state'], $_GET['code']);
-    print_r($auth->jsonSerialize());
+} catch (Exception $e) {
+    echo $e->getMessage();
+}
+
+// Store the token data somewhere
+$refreshToken = $auth->getToken()->getRefreshToken();
+$accessToken = $auth->getToken()->getToken();
+$expires = $auth->getToken()->getExpires();
+// ...
+```
+
+```php
+// Refresh access token, if necessary.
+$existingToken = new League\OAuth2\Client\Token\AccessToken([
+    'refresh_token' => $refreshToken,
+    'access_token' => $accessToken,
+    'expires' => $expires,
+]);
+try {
+    $token = $provider->refreshAccessToken($existingToken);
 } catch (Exception $e) {
     echo $e->getMessage();
 }
