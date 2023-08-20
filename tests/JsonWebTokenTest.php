@@ -17,13 +17,17 @@ class JsonWebTokenTest extends TestCase
      */
     public function testConstructExceptionParseError()
     {
+        $logger = new TestLogger();
         $token = new AccessToken(['access_token' => 'string']);
 
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220021);
-        $this->expectExceptionMessage('Could not parse token.');
+        try {
+            new JsonWebToken($token, $logger);
+        } catch (UnexpectedValueException $e) {
+            $this->assertSame(1526220021, $e->getCode());
+            $this->assertSame('Could not parse token.', $e->getMessage());
+        }
 
-        new JsonWebToken($token);
+        $this->assertSame(['Unsupported input.'], $logger->getMessages());
     }
 
     /**
@@ -83,14 +87,18 @@ class JsonWebTokenTest extends TestCase
         list($token, $keySet) = TestHelper::createTokenAndKeySet();
         unset($keySet[0]['kty']);
 
+        $logger = new TestLogger();
         $token = new AccessToken(['access_token' => $token]);
-        $jws = new JsonWebToken($token);
+        $jws = new JsonWebToken($token, $logger);
 
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220024);
-        $this->expectExceptionMessage('Invalid public key.');
+        try {
+            $jws->verifySignature($keySet);
+        } catch (UnexpectedValueException $e) {
+            $this->assertSame(1526220024, $e->getCode());
+            $this->assertSame('Invalid public key.', $e->getMessage());
+        }
 
-        $jws->verifySignature($keySet);
+        $this->assertSame(['The parameter "kty" is mandatory.'], $logger->getMessages());
     }
 
     /**

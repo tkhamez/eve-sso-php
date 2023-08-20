@@ -16,6 +16,7 @@ use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Serializer\JWSSerializerManager;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 use LogicException;
+use Psr\Log\LoggerInterface;
 use stdClass;
 use UnexpectedValueException;
 
@@ -32,12 +33,13 @@ class JsonWebToken
      * @param AccessTokenInterface $token Must contain an EVE SSOv2 JSON Web Token
      * @throws UnexpectedValueException
      */
-    public function __construct(private AccessTokenInterface $token)
+    public function __construct(private AccessTokenInterface $token, private ?LoggerInterface $logger = null)
     {
         $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
         try {
             $this->jws = $serializerManager->unserialize($this->token->getToken());
-        } catch (Exception) {
+        } catch (Exception $e) {
+            $this->logger?->error($e->getMessage(), ['exception' => $e]);
             throw new UnexpectedValueException('Could not parse token.', 1526220021);
         }
 
@@ -89,7 +91,8 @@ class JsonWebToken
             }
             try {
                 $keys[] = new JWK($publicKey);
-            } catch(InvalidArgumentException) {
+            } catch(InvalidArgumentException $e) {
+                $this->logger?->error($e->getMessage(), ['exception' => $e]);
                 throw new UnexpectedValueException('Invalid public key.', 1526220024);
             }
         }
@@ -103,7 +106,8 @@ class JsonWebToken
                 $valid = $jwsVerifier->verifyWithKeySet($this->jws, new JWKSet($keys), $i);
             } catch(InvalidArgumentException $e) {
                 throw new UnexpectedValueException(
-                    'Could not verify token signature: ' . $e->getMessage(), 1526220025
+                    'Could not verify token signature: ' . $e->getMessage(),
+                    1526220025
                 );
             }
             if ($valid) {

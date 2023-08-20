@@ -13,6 +13,7 @@ use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 use LogicException;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use UnexpectedValueException;
 
@@ -54,7 +55,8 @@ class AuthenticationProvider
     public function __construct(
         array $options,
         array $scopes = [],
-        private ?ClientInterface $httpClient = null
+        private ?ClientInterface $httpClient = null,
+        private ?LoggerInterface $logger = null,
     ) {
         $this->httpClient = $httpClient ?? new Client();
 
@@ -121,12 +123,13 @@ class AuthenticationProvider
         // get token
         try {
             $token = $this->sso->getAccessToken('authorization_code', ['code' => $code]);
-        } catch (Exception) {
+        } catch (Exception $e) {
+            $this->logger?->error($e->getMessage(), ['exception' => $e]);
             throw new UnexpectedValueException('Error when requesting the token.', 1526220013);
         }
 
         // parse and verify token
-        $jws = new JsonWebToken($token);
+        $jws = new JsonWebToken($token, $this->logger);
         if (!$jws->verifyIssuer($this->issuer)) {
             throw new UnexpectedValueException('Token issuer does not match.', 1526220023);
         }
@@ -285,7 +288,8 @@ class AuthenticationProvider
                 'GET',
                 'https://login.eveonline.com/.well-known/oauth-authorization-server'
             );
-        } catch (GuzzleException) {
+        } catch (GuzzleException $e) {
+            $this->logger?->error($e->getMessage(), ['exception' => $e]);
             throw new UnexpectedValueException('Failed to fetch metadata.', 1526220041);
         }
 
@@ -321,7 +325,8 @@ class AuthenticationProvider
 
         try {
             $response = $this->httpClient->request('GET', $this->keySetUri);
-        } catch (GuzzleException) {
+        } catch (GuzzleException $e) {
+            $this->logger?->error($e->getMessage(), ['exception' => $e]);
             throw new UnexpectedValueException('Failed to get public keys.', 1526220031);
         }
 

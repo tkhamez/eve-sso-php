@@ -22,6 +22,8 @@ class AuthenticationProviderTest extends TestCase
 {
     private TestClient $client;
 
+    private TestLogger $logger;
+
     private AuthenticationProvider $authenticationProvider;
 
     public function setUp(): void
@@ -37,22 +39,26 @@ class AuthenticationProviderTest extends TestCase
             'urlRevoke' => 'http://localhost/revoke',
             'issuer' => 'localhost',
         ];
-        $this->authenticationProvider = new AuthenticationProvider($options, [], $this->client);
+        $this->logger = new TestLogger();
+        $this->authenticationProvider = new AuthenticationProvider($options, [], $this->client, $this->logger);
     }
 
     public function testConstruct_MinimalOptions_RequestException()
     {
-        $this->client->setResponse(new TransferException());
+        $this->client->setResponse(new TransferException('Error from Guzzle.'));
 
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220041);
-        $this->expectExceptionMessage('Failed to fetch metadata.');
+        try {
+            new AuthenticationProvider([
+                'clientId'     => '123',
+                'clientSecret' => 'abc',
+                'redirectUri'  => 'https://localhost/callback',
+            ], [], $this->client, $this->logger);
+        } catch (UnexpectedValueException $e) {
+            $this->assertSame(1526220041, $e->getCode());
+            $this->assertSame('Failed to fetch metadata.', $e->getMessage());
+        }
 
-        new AuthenticationProvider([
-            'clientId'     => '123',
-            'clientSecret' => 'abc',
-            'redirectUri'  => 'https://localhost/callback',
-        ], [], $this->client);
+        $this->assertSame(['Error from Guzzle.'], $this->logger->getMessages());
     }
 
     public function testConstruct_MinimalOptions_InvalidDataException()
@@ -152,9 +158,30 @@ class AuthenticationProviderTest extends TestCase
     {
         $this->client->setResponse(new Response(200, [], 'no json'));
 
+        try {
+            $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
+        } catch (UnexpectedValueException $e) {
+            $this->assertSame(1526220013, $e->getCode());
+            $this->assertSame('Error when requesting the token.', $e->getMessage());
+        }
+
+        $this->assertSame(
+            ['Invalid response received from Authorization Server. Expected JSON.'],
+            $this->logger->getMessages()
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testValidateAuthenticationV2_ExceptionValidateJWTokenWrongIssuer()
+    {
+        list($token) = TestHelper::createTokenAndKeySet('invalid.host');
+        $this->client->setResponse(new Response(200, [], '{"access_token": ' . json_encode($token). '}'));
+
         $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220013);
-        $this->expectExceptionMessage('Error when requesting the token.');
+        $this->expectExceptionCode(1526220023);
+        $this->expectExceptionMessage('Token issuer does not match.');
 
         $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
     }
@@ -182,21 +209,6 @@ class AuthenticationProviderTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testValidateAuthenticationV2_ExceptionValidateJWTokenWrongIssuer()
-    {
-        list($token) = TestHelper::createTokenAndKeySet('invalid.host');
-        $this->client->setResponse(new Response(200, [], '{"access_token": ' . json_encode($token). '}'));
-
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220023);
-        $this->expectExceptionMessage('Token issuer does not match.');
-
-        $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
-    }
-
-    /**
-     * @throws Exception
-     */
     public function testValidateAuthenticationV2_ExceptionPublicKeysGetError()
     {
         list($token) = TestHelper::createTokenAndKeySet();
@@ -205,11 +217,14 @@ class AuthenticationProviderTest extends TestCase
             new TransferException('Failed to parse public keys.', 1526220032)
         );
 
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220031);
-        $this->expectExceptionMessage('Failed to get public keys.');
+        try {
+            $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
+        } catch (UnexpectedValueException $e) {
+            $this->assertSame(1526220031, $e->getCode());
+            $this->assertSame('Failed to get public keys.', $e->getMessage());
+        }
 
-        $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
+        $this->assertSame(['Failed to parse public keys.'], $this->logger->getMessages());
     }
 
     /**
