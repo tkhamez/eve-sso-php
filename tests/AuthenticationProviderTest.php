@@ -40,6 +40,36 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider = new AuthenticationProvider($options, [], $this->client);
     }
 
+    public function testConstruct_MinimalOptions_RequestException()
+    {
+        $this->client->setResponse(new TransferException());
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionCode(1526220041);
+        $this->expectExceptionMessage('Failed to fetch metadata.');
+
+        new AuthenticationProvider([
+            'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
+        ], [], $this->client);
+    }
+
+    public function testConstruct_MinimalOptions_InvalidDataException()
+    {
+        $this->client->setResponse(new Response(200, [], '{}'));
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionCode(1526220042);
+        $this->expectExceptionMessage('Missing entries from metadata URL.');
+
+        new AuthenticationProvider([
+            'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
+        ], [], $this->client);
+    }
+
     public function testConstruct_MinimalOptions()
     {
         $this->client->setResponse(
@@ -120,11 +150,11 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_ExceptionGetTokenError()
     {
+        $this->client->setResponse(new Response(200, [], 'no json'));
+
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220013);
         $this->expectExceptionMessage('Error when requesting the token.');
-
-        $this->client->setResponse(new Response(200, [], 'no json'));
 
         $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
     }
@@ -134,10 +164,6 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_ExceptionWrongScopes()
     {
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220014);
-        $this->expectExceptionMessage('Required scopes do not match.');
-
         list($token, $keySet) = TestHelper::createTokenAndKeySet();
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
@@ -145,6 +171,11 @@ class AuthenticationProviderTest extends TestCase
         );
 
         $this->authenticationProvider->setScopes(['scope1']);
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionCode(1526220014);
+        $this->expectExceptionMessage('Required scopes do not match.');
+
         $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
     }
 
@@ -153,12 +184,12 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_ExceptionValidateJWTokenWrongIssuer()
     {
+        list($token) = TestHelper::createTokenAndKeySet('invalid.host');
+        $this->client->setResponse(new Response(200, [], '{"access_token": ' . json_encode($token). '}'));
+
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220023);
         $this->expectExceptionMessage('Token issuer does not match.');
-
-        list($token) = TestHelper::createTokenAndKeySet('invalid.host');
-        $this->client->setResponse(new Response(200, [], '{"access_token": ' . json_encode($token). '}'));
 
         $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
     }
@@ -168,15 +199,15 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_ExceptionPublicKeysGetError()
     {
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220031);
-        $this->expectExceptionMessage('Failed to get public keys.');
-
         list($token) = TestHelper::createTokenAndKeySet();
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
             new TransferException('Failed to parse public keys.', 1526220032)
         );
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionCode(1526220031);
+        $this->expectExceptionMessage('Failed to get public keys.');
 
         $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
     }
@@ -186,15 +217,15 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_ExceptionPublicKeysParseError()
     {
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220032);
-        $this->expectExceptionMessage('Failed to parse public keys.');
-
         list($token) = TestHelper::createTokenAndKeySet();
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
             new Response(200, [], 'no json')
         );
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionCode(1526220032);
+        $this->expectExceptionMessage('Failed to parse public keys.');
 
         $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
     }

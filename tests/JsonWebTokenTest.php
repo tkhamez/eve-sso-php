@@ -17,11 +17,12 @@ class JsonWebTokenTest extends TestCase
      */
     public function testConstructExceptionParseError()
     {
+        $token = new AccessToken(['access_token' => 'string']);
+
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220021);
         $this->expectExceptionMessage('Could not parse token.');
 
-        $token = new AccessToken(['access_token' => 'string']);
         new JsonWebToken($token);
     }
 
@@ -30,20 +31,21 @@ class JsonWebTokenTest extends TestCase
      */
     public function testConstructExceptionInvalidData()
     {
+        list($token) = TestHelper::createTokenAndKeySet('localhost', null);
+
+        $token = new AccessToken(['access_token' => $token]);
+
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220022);
         $this->expectExceptionMessage('Invalid token data.');
 
-        list($token) = TestHelper::createTokenAndKeySet('localhost', null);
-
-        $token = new AccessToken(['access_token' => $token]);
         new JsonWebToken($token);
     }
 
     /**
      * @throws Exception
      */
-    public function testConstruct()
+    public function testConstructOk()
     {
         list($token) = TestHelper::createTokenAndKeySet();
 
@@ -78,15 +80,16 @@ class JsonWebTokenTest extends TestCase
      */
     public function testVerifySignatureExceptionInvalidPublicKey()
     {
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220024);
-        $this->expectExceptionMessage('Invalid public key.');
-
         list($token, $keySet) = TestHelper::createTokenAndKeySet();
         unset($keySet[0]['kty']);
 
         $token = new AccessToken(['access_token' => $token]);
         $jws = new JsonWebToken($token);
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionCode(1526220024);
+        $this->expectExceptionMessage('Invalid public key.');
+
         $jws->verifySignature($keySet);
     }
 
@@ -95,14 +98,15 @@ class JsonWebTokenTest extends TestCase
      */
     public function testVerifySignatureExceptionSignatureError()
     {
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220025);
-        $this->expectExceptionMessage('Could not verify token signature: There is no key in the key set.');
-
         list($token) = TestHelper::createTokenAndKeySet();
 
         $token = new AccessToken(['access_token' => $token]);
         $jws = new JsonWebToken($token);
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionCode(1526220025);
+        $this->expectExceptionMessage('Could not verify token signature: There is no key in the key set.');
+
         $jws->verifySignature([]);
     }
 
@@ -111,24 +115,26 @@ class JsonWebTokenTest extends TestCase
      */
     public function testVerifySignatureExceptionSignatureInvalid()
     {
+        list($token, $keySet) = TestHelper::createTokenAndKeySet();
+        $keySet[0]['alg'] = 'unknown';
+
+        $token = new AccessToken(['access_token' => $token]);
+        $jws = new JsonWebToken($token);
+
         $this->expectException(UnexpectedValueException::class);
         $this->expectExceptionCode(1526220026);
         $this->expectExceptionMessage('Invalid token signature.');
 
-        list($token, $keySet) = TestHelper::createTokenAndKeySet();
-        $keySet[0]['alg'] = 'unknown';
-        
-        $token = new AccessToken(['access_token' => $token]);
-        $jws = new JsonWebToken($token);
         $jws->verifySignature($keySet);
     }
 
     /**
      * @throws Exception
      */
-    public function testVerifySignature()
+    public function testVerifySignatureOk()
     {
         list($token, $keySet) = TestHelper::createTokenAndKeySet();
+        $keySet[] = ['kid' => 'something invalid'];
 
         $token = new AccessToken(['access_token' => $token]);
         $jws = new JsonWebToken($token);
