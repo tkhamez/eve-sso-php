@@ -2,7 +2,7 @@
 
 ## 4.1.0
 
-mm dd, yyyy
+August 20, 2023
 
 - Added optional PSR-3 logger to log exceptions that are caught from libraries (pass it to the 
   AuthenticationProvider constructor).
