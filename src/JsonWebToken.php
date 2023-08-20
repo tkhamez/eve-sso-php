@@ -40,7 +40,7 @@ class JsonWebToken
             $this->jws = $serializerManager->unserialize($this->token->getToken());
         } catch (Exception $e) {
             $this->logger?->error($e->getMessage(), ['exception' => $e]);
-            throw new UnexpectedValueException('Could not parse token.', 1526220021);
+            throw new UnexpectedValueException('Could not parse token.', 1526220021, $e);
         }
 
         // parse data
@@ -91,9 +91,9 @@ class JsonWebToken
             }
             try {
                 $keys[] = new JWK($publicKey);
-            } catch(InvalidArgumentException $e) {
+            } catch (InvalidArgumentException $e) {
                 $this->logger?->error($e->getMessage(), ['exception' => $e]);
-                throw new UnexpectedValueException('Invalid public key.', 1526220024);
+                throw new UnexpectedValueException('Invalid public key.', 1526220024, $e);
             }
         }
 
@@ -104,10 +104,11 @@ class JsonWebToken
         for ($i = 0; $i < count($this->jws->getSignatures()); $i++) {
             try {
                 $valid = $jwsVerifier->verifyWithKeySet($this->jws, new JWKSet($keys), $i);
-            } catch(InvalidArgumentException $e) {
+            } catch (InvalidArgumentException $e) {
                 throw new UnexpectedValueException(
                     'Could not verify token signature: ' . $e->getMessage(),
-                    1526220025
+                    1526220025,
+                    $e
                 );
             }
             if ($valid) {

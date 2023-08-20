@@ -25,6 +25,7 @@ class JsonWebTokenTest extends TestCase
         } catch (UnexpectedValueException $e) {
             $this->assertSame(1526220021, $e->getCode());
             $this->assertSame('Could not parse token.', $e->getMessage());
+            $this->assertSame('Unsupported input.', $e->getPrevious()->getMessage());
         }
 
         $this->assertSame(['Unsupported input.'], $logger->getMessages());
@@ -96,6 +97,7 @@ class JsonWebTokenTest extends TestCase
         } catch (UnexpectedValueException $e) {
             $this->assertSame(1526220024, $e->getCode());
             $this->assertSame('Invalid public key.', $e->getMessage());
+            $this->assertSame('The parameter "kty" is mandatory.', $e->getPrevious()->getMessage());
         }
 
         $this->assertSame(['The parameter "kty" is mandatory.'], $logger->getMessages());
@@ -111,11 +113,13 @@ class JsonWebTokenTest extends TestCase
         $token = new AccessToken(['access_token' => $token]);
         $jws = new JsonWebToken($token);
 
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220025);
-        $this->expectExceptionMessage('Could not verify token signature: There is no key in the key set.');
-
-        $jws->verifySignature([]);
+        try {
+            $jws->verifySignature([]);
+        } catch (UnexpectedValueException $e) {
+            $this->assertSame(1526220025, $e->getCode());
+            $this->assertSame('Could not verify token signature: There is no key in the key set.', $e->getMessage());
+            $this->assertSame('There is no key in the key set.', $e->getPrevious()->getMessage());
+        }
     }
 
     /**

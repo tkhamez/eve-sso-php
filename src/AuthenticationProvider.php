@@ -125,7 +125,7 @@ class AuthenticationProvider
             $token = $this->sso->getAccessToken('authorization_code', ['code' => $code]);
         } catch (Exception $e) {
             $this->logger?->error($e->getMessage(), ['exception' => $e]);
-            throw new UnexpectedValueException('Error when requesting the token.', 1526220013);
+            throw new UnexpectedValueException('Error when requesting the token.', 1526220013, $e);
         }
 
         // parse and verify token
@@ -185,9 +185,9 @@ class AuthenticationProvider
             } catch (Exception $e) {
                 if ($e instanceof IdentityProviderException && $e->getMessage() === 'invalid_grant') {
                     // invalid_grant = e. g. invalid or revoked refresh token
-                    throw new InvalidGrantException();
+                    throw new InvalidGrantException(previous: $e);
                 } else {
-                    throw new RuntimeException($e->getMessage());
+                    throw new RuntimeException($e->getMessage(), previous: $e);
                 }
             }
         }
@@ -290,7 +290,7 @@ class AuthenticationProvider
             );
         } catch (GuzzleException $e) {
             $this->logger?->error($e->getMessage(), ['exception' => $e]);
-            throw new UnexpectedValueException('Failed to fetch metadata.', 1526220041);
+            throw new UnexpectedValueException('Failed to fetch metadata.', 1526220041, $e);
         }
 
         $data = json_decode($response->getBody()->getContents(), true);
@@ -327,7 +327,7 @@ class AuthenticationProvider
             $response = $this->httpClient->request('GET', $this->keySetUri);
         } catch (GuzzleException $e) {
             $this->logger?->error($e->getMessage(), ['exception' => $e]);
-            throw new UnexpectedValueException('Failed to get public keys.', 1526220031);
+            throw new UnexpectedValueException('Failed to get public keys.', 1526220031, $e);
         }
 
         $keySet = json_decode($response->getBody()->getContents(), true);

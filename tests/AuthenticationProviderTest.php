@@ -56,6 +56,7 @@ class AuthenticationProviderTest extends TestCase
         } catch (UnexpectedValueException $e) {
             $this->assertSame(1526220041, $e->getCode());
             $this->assertSame('Failed to fetch metadata.', $e->getMessage());
+            $this->assertSame('Error from Guzzle.', $e->getPrevious()->getMessage());
         }
 
         $this->assertSame(['Error from Guzzle.'], $this->logger->getMessages());
@@ -163,6 +164,10 @@ class AuthenticationProviderTest extends TestCase
         } catch (UnexpectedValueException $e) {
             $this->assertSame(1526220013, $e->getCode());
             $this->assertSame('Error when requesting the token.', $e->getMessage());
+            $this->assertSame(
+                'Invalid response received from Authorization Server. Expected JSON.',
+                $e->getPrevious()->getMessage()
+            );
         }
 
         $this->assertSame(
@@ -222,6 +227,7 @@ class AuthenticationProviderTest extends TestCase
         } catch (UnexpectedValueException $e) {
             $this->assertSame(1526220031, $e->getCode());
             $this->assertSame('Failed to get public keys.', $e->getMessage());
+            $this->assertSame('Failed to parse public keys.', $e->getPrevious()->getMessage());
         }
 
         $this->assertSame(['Failed to parse public keys.'], $this->logger->getMessages());
@@ -339,11 +345,19 @@ class AuthenticationProviderTest extends TestCase
             'expires' => 1349067601 // 2012-10-01 + 1
         ]);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionCode(0);
-        $this->expectExceptionMessage('An OAuth server error ');
-
-        $this->authenticationProvider->refreshAccessToken($token);
+        try {
+            $this->authenticationProvider->refreshAccessToken($token);
+        } catch (RuntimeException $e) {
+            $this->assertSame(0, $e->getCode());
+            $this->assertSame(
+                'An OAuth server error was encountered that did not contain a JSON body',
+                $e->getMessage()
+            );
+            $this->assertSame(
+                'An OAuth server error was encountered that did not contain a JSON body',
+                $e->getPrevious()->getMessage()
+            );
+        }
     }
 
     /**
@@ -359,11 +373,13 @@ class AuthenticationProviderTest extends TestCase
             'expires' => 1349067601 // 2012-10-01 + 1
         ]);
 
-        $this->expectException(InvalidGrantException::class);
-        $this->expectExceptionCode(0);
-        $this->expectExceptionMessage('');
-
-        $this->authenticationProvider->refreshAccessToken($token);
+        try {
+            $this->authenticationProvider->refreshAccessToken($token);
+        } catch (InvalidGrantException $e) {
+            $this->assertSame(0, $e->getCode());
+            $this->assertSame('', $e->getMessage());
+            $this->assertSame('invalid_grant', $e->getPrevious()->getMessage());
+        }
     }
 
     /**

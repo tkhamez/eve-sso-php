@@ -6,6 +6,7 @@ mm dd, yyyy
 
 - Added optional PSR-3 logger to log exceptions that are caught from libraries (pass it to the 
   AuthenticationProvider constructor).
+- Added original exception to raised exceptions, if applicable.
 
 ## 4.0.0
 
