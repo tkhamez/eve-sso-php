@@ -25,6 +25,7 @@ $provider = new Eve\Sso\AuthenticationProvider(
         'redirectUri'    => 'https://your-callback.url',
         
         // optional
+        'urlMetadata'    => 'https://login.eveonline.com/.well-known/oauth-authorization-server',
         'urlAuthorize'   => 'https://login.eveonline.com/v2/oauth/authorize',
         'urlAccessToken' => 'https://login.eveonline.com/v2/oauth/token',
         'urlKeySet'      => 'https://login.eveonline.com/oauth/jwks',

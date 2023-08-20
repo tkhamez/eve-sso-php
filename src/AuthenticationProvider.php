@@ -34,6 +34,8 @@ class AuthenticationProvider
 
     private string $clientSecret;
 
+    private string $metadataUrl = 'https://login.eveonline.com/.well-known/oauth-authorization-server';
+
     private string $keySetUri;
 
     private string $revokeUrl;
@@ -233,6 +235,10 @@ class AuthenticationProvider
             throw new InvalidArgumentException('At least one of the required options is not defined or empty.');
         }
 
+        if (!empty($options['urlMetadata'])) {
+            $this->metadataUrl = (string)$options['urlMetadata'];
+        }
+
         if (
             empty($options['urlAuthorize']) ||
             empty($options['urlAccessToken']) ||
@@ -284,10 +290,7 @@ class AuthenticationProvider
         // This is only called once via constructor.
 
         try {
-            $response = $this->httpClient->request(
-                'GET',
-                'https://login.eveonline.com/.well-known/oauth-authorization-server'
-            );
+            $response = $this->httpClient->request('GET', $this->metadataUrl);
         } catch (GuzzleException $e) {
             $this->logger?->error($e->getMessage(), ['exception' => $e]);
             throw new UnexpectedValueException('Failed to fetch metadata.', 1526220041, $e);

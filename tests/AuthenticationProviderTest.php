@@ -33,6 +33,7 @@ class AuthenticationProviderTest extends TestCase
             'clientId'     => '123',
             'clientSecret' => 'abc',
             'redirectUri'  => 'https://localhost/callback',
+            'urlMetadata' => 'https://localhost/.well-known/oauth-authorization-server',
             'urlAuthorize' => 'https://localhost/auth',
             'urlAccessToken' => 'https://localhost/token',
             'urlKeySet' => 'http://localhost/jwks',
