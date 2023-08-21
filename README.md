@@ -3,11 +3,12 @@
 
 # EVE Online SSO
 
-Package supporting EVE Online SSO v2.
+PHP package supporting [EVE Online SSO v2](https://docs.esi.evetech.net/docs/sso/) (flow for web based applications)
+including JWT signature verification.
 
 ## Install
 
-To install the bindings via [Composer](http://getcomposer.org/), execute:
+To install the library via [Composer](http://getcomposer.org/), execute:
 
 ```shell
 composer require tkhamez/eve-sso
@@ -17,23 +18,42 @@ composer require tkhamez/eve-sso
 
 ```php
 // Initiate provider object
-$provider = new Eve\Sso\AuthenticationProvider(
-    [
-        // required
-        'clientId'       => 'your-EVE-app-client-ID',
-        'clientSecret'   => 'your-EVE-app-secret-key',
-        'redirectUri'    => 'https://your-callback.url',
-        
-        // optional
-        'urlMetadata'    => 'https://login.eveonline.com/.well-known/oauth-authorization-server',
-        'urlAuthorize'   => 'https://login.eveonline.com/v2/oauth/authorize',
-        'urlAccessToken' => 'https://login.eveonline.com/v2/oauth/token',
-        'urlKeySet'      => 'https://login.eveonline.com/oauth/jwks',
-        'urlRevoke'      => 'https://login.eveonline.com/v2/oauth/revoke',
-        'issuer'         => 'login.eveonline.com',
-    ],
-    ['esi-mail.read_mail.v1', 'esi-skills.read_skills.v1'], // add all required scopes
-);
+// (if you do not provide all optional URLs this will make a request to the metadata URL to
+// get them).
+try {
+    $provider = new Eve\Sso\AuthenticationProvider(
+        [
+            // required
+            'clientId'       => 'your-EVE-app-client-ID',
+            'clientSecret'   => 'your-EVE-app-secret-key',
+            'redirectUri'    => 'https://your-callback.url',
+    
+            // optional
+            'urlAuthorize'   => 'https://login.eveonline.com/v2/oauth/authorize',
+            'urlAccessToken' => 'https://login.eveonline.com/v2/oauth/token',
+            'urlRevoke'      => 'https://login.eveonline.com/v2/oauth/revoke',
+            'urlKeySet'      => 'https://login.eveonline.com/oauth/jwks',
+            'issuer'         => 'login.eveonline.com',
+            'urlMetadata' => 'https://login.eveonline.com/.well-known/oauth-authorization-server',
+        ],
+    
+        // Add all required scopes.
+        ['esi-mail.read_mail.v1', 'esi-skills.read_skills.v1'],
+    
+        // Optionally use your own HTTP client.
+        httpClient: new GuzzleHttp\Client(),
+    
+        // Optionally add a logger to log exception that are caught from libraries
+        // (any class implementing Psr\Log\LoggerInterface, the example uses monolog/monolog
+        // which is not included in this package).
+        logger: new Monolog\Logger('SSO', [new Monolog\Handler\StreamHandler('/path/to/logfile')])
+    );
+} catch (Exception $e) {
+    echo $e->getMessage();
+}
+
+// Optionally disable signature verification.
+$provider->setSignatureVerification(false);
 ```
 
 ```php
