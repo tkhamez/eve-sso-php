@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.1.1
+
+October 19, 2023
+
+- Improved "issuer" validation.
+
 ## 4.1.0
 
 August 20, 2023

@@ -70,13 +70,23 @@ class JsonWebTokenTest extends TestCase
         $jwt = new JsonWebToken($accessToken);
         $this->assertFalse($jwt->verifyIssuer('https://other.host'));
         $this->assertTrue($jwt->verifyIssuer('https://local.host'));
+        $this->assertTrue($jwt->verifyIssuer('http://local.host'));
+        $this->assertTrue($jwt->verifyIssuer('local.host'));
+
+        list($token) = TestHelper::createTokenAndKeySet('http://local.host');
+        $accessToken = new AccessToken(['access_token' => $token]);
+        $jwt = new JsonWebToken($accessToken);
+        $this->assertFalse($jwt->verifyIssuer('http://other.host'));
+        $this->assertTrue($jwt->verifyIssuer('https://local.host'));
+        $this->assertTrue($jwt->verifyIssuer('http://local.host'));
         $this->assertTrue($jwt->verifyIssuer('local.host'));
 
         list($token2) = TestHelper::createTokenAndKeySet('local.host');
         $accessToken2 = new AccessToken(['access_token' => $token2]);
         $jwt2 = new JsonWebToken($accessToken2);
         $this->assertFalse($jwt2->verifyIssuer('other.host'));
-        $this->assertFalse($jwt2->verifyIssuer('https://local.host'));
+        $this->assertTrue($jwt2->verifyIssuer('https://local.host'));
+        $this->assertTrue($jwt2->verifyIssuer('http://local.host'));
         $this->assertTrue($jwt2->verifyIssuer('local.host'));
     }
 

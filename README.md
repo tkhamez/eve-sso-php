@@ -33,7 +33,7 @@ try {
             'urlAccessToken' => 'https://login.eveonline.com/v2/oauth/token',
             'urlRevoke'      => 'https://login.eveonline.com/v2/oauth/revoke',
             'urlKeySet'      => 'https://login.eveonline.com/oauth/jwks',
-            'issuer'         => 'login.eveonline.com',
+            'issuer'         => 'https://login.eveonline.com',
             'urlMetadata' => 'https://login.eveonline.com/.well-known/oauth-authorization-server',
         ],
     

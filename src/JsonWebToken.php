@@ -55,13 +55,25 @@ class JsonWebToken
         // see https://github.com/ccpgames/sso-issues/issues/41
 
         $issuerWithHttps = $issuer;
+        $issuerWithHttp = $issuer;
+        $issuerWithoutScheme = $issuer;
         if (!str_starts_with($issuer, 'http')) {
             $issuerWithHttps = "https://$issuer";
+            $issuerWithHttp = "http://$issuer";
+        }
+        if (str_starts_with($issuer, 'https://'))  {
+            $issuerWithoutScheme = substr($issuer, 8);
+            $issuerWithHttp = "http://$issuerWithoutScheme";
+        }
+        if (str_starts_with($issuer, 'http://'))  {
+            $issuerWithoutScheme = substr($issuer, 7);
+            $issuerWithHttps = "https://$issuerWithoutScheme";
         }
 
         return
-            $this->payload->iss === $issuer ||
-            $this->payload->iss === $issuerWithHttps;
+            $this->payload->iss === $issuerWithHttps ||
+            $this->payload->iss === $issuerWithHttp ||
+            $this->payload->iss === $issuerWithoutScheme;
     }
 
     /**
