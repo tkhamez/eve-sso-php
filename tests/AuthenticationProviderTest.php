@@ -177,19 +177,22 @@ class AuthenticationProviderTest extends TestCase
         );
     }
 
-    /**
-     * @throws Exception
-     */
     public function testValidateAuthenticationV2_ExceptionValidateJWTokenWrongIssuer()
     {
         list($token) = TestHelper::createTokenAndKeySet('invalid.host');
         $this->client->setResponse(new Response(200, [], '{"access_token": ' . json_encode($token). '}'));
 
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220023);
-        $this->expectExceptionMessage('Token issuer does not match.');
+        try {
+            $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
+        } catch (UnexpectedValueException $e) {
+            $this->assertSame(1526220023, $e->getCode());
+            $this->assertSame('Token issuer does not match.', $e->getMessage());
+        }
 
-        $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
+        $this->assertSame(
+            ["Issuer 'invalid.host' does not match 'localhost'"],
+            $this->logger->getMessages()
+        );
     }
 
     /**

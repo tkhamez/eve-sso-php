@@ -27,7 +27,7 @@ class JsonWebToken
 {
     private JWS $jws;
 
-    private ?stdClass $payload;
+    private stdClass $payload;
 
     /**
      * @param AccessTokenInterface $token Must contain an EVE SSOv2 JSON Web Token
@@ -44,10 +44,16 @@ class JsonWebToken
         }
 
         // parse data
-        $this->payload = json_decode($this->jws->getPayload());
-        if ($this->payload === null || !isset($this->payload->sub)) {
+        $payload = json_decode($this->jws->getPayload());
+        if ($payload === null || !isset($payload->sub)) {
             throw new UnexpectedValueException('Invalid token data.', 1526220022);
         }
+        $this->payload = $payload;
+    }
+
+    public function getPayload(): \stdClass
+    {
+        return $this->payload;
     }
 
     public function verifyIssuer(string $issuer): bool

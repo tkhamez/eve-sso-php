@@ -133,6 +133,7 @@ class AuthenticationProvider
         // parse and verify token
         $jws = new JsonWebToken($token, $this->logger);
         if (!$jws->verifyIssuer($this->issuer)) {
+            $this->logger?->error("Issuer '{$jws->getPayload()->iss}' does not match '$this->issuer'");
             throw new UnexpectedValueException('Token issuer does not match.', 1526220023);
         }
 
