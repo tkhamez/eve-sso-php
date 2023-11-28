@@ -81,7 +81,7 @@ $expires = $auth->getToken()->getExpires();
 ```
 
 ```php
-// Refresh access token, if necessary.
+// Refreshes access token, if necessary.
 $existingToken = new League\OAuth2\Client\Token\AccessToken([
     'refresh_token' => $refreshToken,
     'access_token' => $accessToken,
