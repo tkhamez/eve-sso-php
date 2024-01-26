@@ -177,6 +177,9 @@ class AuthenticationProviderTest extends TestCase
         );
     }
 
+    /**
+     * @throws Exception
+     */
     public function testValidateAuthenticationV2_ExceptionValidateJWTokenWrongIssuer()
     {
         list($token) = TestHelper::createTokenAndKeySet('invalid.host');

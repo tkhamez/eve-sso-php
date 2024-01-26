@@ -6,6 +6,7 @@ namespace Test;
 
 use Monolog\Handler\TestHandler;
 use Monolog\Logger;
+use Monolog\LogRecord;
 
 class TestLogger extends Logger
 {
@@ -18,7 +19,7 @@ class TestLogger extends Logger
     {
         $handler = parent::getHandlers()[0];
         if ($handler instanceof TestHandler) {
-            return array_map(function (array $item) {
+            return array_map(function (LogRecord $item) {
                 return $item['message'];
             }, $handler->getRecords());
         }

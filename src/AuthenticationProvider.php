@@ -55,10 +55,10 @@ class AuthenticationProvider
      * @see ../README.md
      */
     public function __construct(
-        array $options,
-        array $scopes = [],
-        private ?ClientInterface $httpClient = null,
-        private ?LoggerInterface $logger = null,
+        array                             $options,
+        array                             $scopes = [],
+        private ?ClientInterface          $httpClient = null,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         $this->httpClient = $httpClient ?? new Client();
 

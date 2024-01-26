@@ -33,8 +33,10 @@ class JsonWebToken
      * @param AccessTokenInterface $token Must contain an EVE SSOv2 JSON Web Token
      * @throws UnexpectedValueException
      */
-    public function __construct(private AccessTokenInterface $token, private ?LoggerInterface $logger = null)
-    {
+    public function __construct(
+        private readonly AccessTokenInterface $token,
+        private readonly ?LoggerInterface $logger = null
+    ) {
         $serializerManager = new JWSSerializerManager([new CompactSerializer()]);
         try {
             $this->jws = $serializerManager->unserialize($this->token->getToken());
@@ -51,7 +53,7 @@ class JsonWebToken
         $this->payload = $payload;
     }
 
-    public function getPayload(): \stdClass
+    public function getPayload(): stdClass
     {
         return $this->payload;
     }

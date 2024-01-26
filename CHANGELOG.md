@@ -1,5 +1,11 @@
 # Changelog
 
+## next (5.0.0)
+
+{date}
+
+- Dropped PHP 8.0 support.
+
 ## 4.1.1
 
 October 19, 2023

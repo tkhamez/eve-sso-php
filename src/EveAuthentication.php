@@ -13,11 +13,11 @@ class EveAuthentication implements JsonSerializable
      * @param string[] $scopes
      */
     public function __construct(
-        private int $characterId,
-        private string $characterName,
-        private string $characterOwnerHash,
-        private AccessTokenInterface $token,
-        private array $scopes = []
+        private readonly int                  $characterId,
+        private readonly string               $characterName,
+        private readonly string               $characterOwnerHash,
+        private readonly AccessTokenInterface $token,
+        private readonly array                $scopes = []
     ) {
     }
 
