@@ -1,8 +1,8 @@
 # Changelog
 
-## next (5.0.0)
+## 5.0.0
 
-{date}
+January 26, 2024
 
 - Dropped PHP 8.0 support.
 
