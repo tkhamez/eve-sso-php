@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.1.0
+
+June 1, 2024
+
+- Replaced abandoned web-token/* packaged with web-token/jwt-library.
+
 ## 5.0.0
 
 January 26, 2024

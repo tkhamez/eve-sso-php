@@ -13,14 +13,11 @@
         "guzzlehttp/guzzle": "^7.7",
         "league/oauth2-client": "^2.7",
         "psr/log": "^1.0 || ^2.0 || ^3.0",
-        "web-token/jwt-core": "^3.2",
-        "web-token/jwt-signature": "^3.2",
-        "web-token/jwt-signature-algorithm-rsa": "^3.2"
+        "web-token/jwt-library": "^3.4"
     },
     "require-dev": {
         "monolog/monolog": "^3.5",
-        "phpunit/phpunit": "10",
-        "web-token/jwt-key-mgmt": "^3.2"
+        "phpunit/phpunit": "10"
     },
     "autoload": {
         "psr-4": {
