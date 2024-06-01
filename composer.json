@@ -19,7 +19,7 @@
     },
     "require-dev": {
         "monolog/monolog": "^3.5",
-        "phpunit/phpunit": "^9.6",
+        "phpunit/phpunit": "10",
         "web-token/jwt-key-mgmt": "^3.2"
     },
     "autoload": {

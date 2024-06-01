@@ -1,7 +1,7 @@
 /.idea/
+/.phpunit.cache
 /build/
 /vendor/
 /xdebug/
-/.phpunit.result.cache
 /composer.phar
 /composer.lock
