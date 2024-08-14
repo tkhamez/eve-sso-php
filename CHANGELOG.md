@@ -4,7 +4,7 @@
 
 June 1, 2024
 
-- Replaced abandoned web-token/* packaged with web-token/jwt-library.
+- Replaced abandoned web-token/* packages with web-token/jwt-library.
 
 ## 5.0.0
 
