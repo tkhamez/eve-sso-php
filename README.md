@@ -1,5 +1,6 @@
 [![build](https://github.com/tkhamez/eve-sso-php/workflows/test/badge.svg)](https://github.com/tkhamez/eve-sso-php/actions)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/d607d04898a6f8500b99/test_coverage)](https://codeclimate.com/github/tkhamez/eve-sso-php/test_coverage)
+[![Packagist Downloads](https://img.shields.io/packagist/dt/tkhamez/eve-sso)](https://packagist.org/packages/tkhamez/eve-sso)
 
 # EVE Online SSO
 
