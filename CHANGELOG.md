@@ -1,7 +1,11 @@
 # Changelog
 
-## next
+## 6.0.0
 
+Breaking changes:
+- Fix: Reset scopes if setScopes() is called a second time instead of adding new scopes.
+
+Other changes:
 - Fix: Catch \Throwable instead of \Exception from AbstractProvider->getAccessToken().
 
 ## 5.1.0

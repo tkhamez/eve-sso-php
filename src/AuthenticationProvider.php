@@ -29,7 +29,7 @@ class AuthenticationProvider
      *
      * @var string[]
      */
-    private array $scopes = [];
+    private array $scopes;
 
     private string $clientId;
 
@@ -90,6 +90,8 @@ class AuthenticationProvider
      */
     public function setScopes(array $scopes): self
     {
+        $this->scopes = [];
+
         foreach ($scopes as $scope) {
             if ($scope !== '') {
                 $this->scopes[] = $scope;
