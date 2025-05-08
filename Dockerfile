@@ -1,7 +1,7 @@
 FROM php:8.4-alpine
 RUN apk update && apk add --no-cache gmp-dev linux-headers
 RUN mkdir -p /usr/src/php/ext/xdebug && \
-    curl -fsSL https://pecl.php.net/get/xdebug-3.4.0beta1.tgz | tar xvz -C "/usr/src/php/ext/xdebug" --strip 1
+    curl -fsSL https://pecl.php.net/get/xdebug-3.4.2.tgz | tar xvz -C "/usr/src/php/ext/xdebug" --strip 1
 RUN docker-php-ext-install gmp xdebug
 RUN echo "xdebug.mode = develop,coverage,profile,debug,trace"  > /usr/local/etc/php/conf.d/eve-sso.ini && \
     echo "xdebug.output_dir = /app/xdebug/output"             >> /usr/local/etc/php/conf.d/eve-sso.ini && \
