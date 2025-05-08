@@ -1,5 +1,9 @@
 # Changelog
 
+## next
+
+- Fix: Catch \Throwable instead of \Exception from AbstractProvider->getAccessToken().
+
 ## 5.1.0
 
 June 1, 2024

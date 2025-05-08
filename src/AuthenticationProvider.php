@@ -15,6 +15,7 @@ use League\OAuth2\Client\Token\AccessTokenInterface;
 use LogicException;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Throwable;
 use UnexpectedValueException;
 
 class AuthenticationProvider
@@ -125,7 +126,7 @@ class AuthenticationProvider
         // get token
         try {
             $token = $this->sso->getAccessToken('authorization_code', ['code' => $code]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logger?->error($e->getMessage(), ['exception' => $e]);
             throw new UnexpectedValueException('Error when requesting the token.', 1526220013, $e);
         }
@@ -185,7 +186,7 @@ class AuthenticationProvider
                     'refresh_token',
                     ['refresh_token' => (string)$existingToken->getRefreshToken()]
                 );
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 if ($e instanceof IdentityProviderException && $e->getMessage() === 'invalid_grant') {
                     // invalid_grant = e. g. invalid or revoked refresh token
                     throw new InvalidGrantException(previous: $e);
