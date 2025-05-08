@@ -2,7 +2,7 @@
 
 ## 6.0.0
 
-(unreleased)
+May 8, 2025
 
 Breaking changes:
 - Scopes are now reset if setScopes() is called instead of adding the new scopes.
