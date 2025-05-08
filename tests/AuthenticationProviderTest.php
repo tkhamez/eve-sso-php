@@ -41,41 +41,12 @@ class AuthenticationProviderTest extends TestCase
             'issuer' => 'localhost',
         ];
         $this->logger = new TestLogger();
-        $this->authenticationProvider = new AuthenticationProvider($options, [], $this->client, $this->logger);
-    }
-
-    public function testConstruct_MinimalOptions_RequestException()
-    {
-        $this->client->setResponse(new TransferException('Error from Guzzle.'));
-
-        try {
-            new AuthenticationProvider([
-                'clientId'     => '123',
-                'clientSecret' => 'abc',
-                'redirectUri'  => 'https://localhost/callback',
-            ], [], $this->client, $this->logger);
-        } catch (UnexpectedValueException $e) {
-            $this->assertSame(1526220041, $e->getCode());
-            $this->assertSame('Failed to fetch metadata.', $e->getMessage());
-            $this->assertSame('Error from Guzzle.', $e->getPrevious()->getMessage());
-        }
-
-        $this->assertSame(['Error from Guzzle.'], $this->logger->getMessages());
-    }
-
-    public function testConstruct_MinimalOptions_InvalidDataException()
-    {
-        $this->client->setResponse(new Response(200, [], '{}'));
-
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionCode(1526220042);
-        $this->expectExceptionMessage('Missing entries from metadata URL.');
-
-        new AuthenticationProvider([
-            'clientId'     => '123',
-            'clientSecret' => 'abc',
-            'redirectUri'  => 'https://localhost/callback',
-        ], [], $this->client);
+        $this->authenticationProvider = new AuthenticationProvider(
+            $options,
+            [],
+            $this->client,
+            $this->logger
+        );
     }
 
     public function testConstruct_MinimalOptions()
@@ -122,7 +93,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testGenerateState()
     {
@@ -130,6 +101,67 @@ class AuthenticationProviderTest extends TestCase
             '/prefix[a-f0-9]{32}/i',
             $this->authenticationProvider->generateState('prefix')
         );
+    }
+
+    public function testBuildLoginUrl_MinimalOptions_RequestException()
+    {
+        $provider = new AuthenticationProvider([
+            'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
+        ], [], $this->client, $this->logger);
+
+        $this->client->setResponse(new TransferException('Error from Guzzle.'));
+
+        try {
+            $provider->buildLoginUrl('state123');
+        } catch (UnexpectedValueException $e) {
+            $this->assertSame(1526220041, $e->getCode());
+            $this->assertSame('Failed to fetch metadata.', $e->getMessage());
+            $this->assertSame('Error from Guzzle.', $e->getPrevious()->getMessage());
+        }
+
+        $this->assertSame(['Error from Guzzle.'], $this->logger->getMessages());
+    }
+
+    public function testBuildLoginUrl_MinimalOptions_InvalidDataException()
+    {
+        $provider = new AuthenticationProvider([
+            'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
+        ], [], $this->client);
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionCode(1526220042);
+        $this->expectExceptionMessage('Missing entries from metadata URL.');
+
+        $this->client->setResponse(new Response(200, [], '{}'));
+
+        $provider->buildLoginUrl('state123');
+    }
+
+    public function testBuildLoginUrl_MinimalOptions_Ok()
+    {
+        $this->client->setResponse(
+            new Response(200, [], '{
+                "issuer": "localhost",
+                "authorization_endpoint": "https://localhost/auth",
+                "token_endpoint": "https://localhost/token",
+                "jwks_uri": "http://localhost/jwks",
+                "revocation_endpoint": "http://localhost/revoke"
+            }')
+        );
+
+        $provider = new AuthenticationProvider([
+            'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
+        ], [], $this->client);
+
+        $provider->buildLoginUrl('state123');
+
+        $this->assertTrue(true); // no exception was thrown
     }
 
     /**
@@ -141,9 +173,21 @@ class AuthenticationProviderTest extends TestCase
         $this->assertStringContainsString('state=state123', $url);
     }
 
-    /**
-     * @throws Exception
-     */
+    public function testValidateAuthenticationV2_MinimalOptions_RequestException()
+    {
+        $provider = new AuthenticationProvider([
+            'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
+        ], [], $this->client, $this->logger);
+
+        $this->client->setResponse(new TransferException('Error from Guzzle.'));
+
+        $this->expectExceptionMessage('Failed to fetch metadata.');
+
+        $provider->validateAuthenticationV2('state1', 'state2', 'code');
+    }
+
     public function testValidateAuthenticationV2_ExceptionWrongSessionState()
     {
         $this->expectException(UnexpectedValueException::class);
@@ -153,9 +197,6 @@ class AuthenticationProviderTest extends TestCase
         $this->authenticationProvider->validateAuthenticationV2('state1', 'state2', 'code');
     }
 
-    /**
-     * @throws Exception
-     */
     public function testValidateAuthenticationV2_ExceptionGetTokenError()
     {
         $this->client->setResponse(new Response(200, [], 'no json'));
@@ -178,12 +219,14 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testValidateAuthenticationV2_ExceptionValidateJWTokenWrongIssuer()
     {
         list($token) = TestHelper::createTokenAndKeySet('invalid.host');
-        $this->client->setResponse(new Response(200, [], '{"access_token": ' . json_encode($token). '}'));
+        $this->client->setResponse(
+            new Response(200, [], '{"access_token": ' . json_encode($token). '}')
+        );
 
         try {
             $this->authenticationProvider->validateAuthenticationV2('state', 'state', 'code');
@@ -199,7 +242,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testValidateAuthenticationV2_ExceptionWrongScopes()
     {
@@ -219,7 +262,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testValidateAuthenticationV2_ExceptionPublicKeysGetError()
     {
@@ -241,7 +284,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testValidateAuthenticationV2_ExceptionPublicKeysParseError()
     {
@@ -259,17 +302,18 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testValidateAuthenticationV2_PublicKeysCache()
     {
         list($token, $keySet) = TestHelper::createTokenAndKeySet(); // issuer = localhost
 
         $this->client->setResponse(
-            new Response(200, [], '{"access_token": ' . json_encode($token) . '}'), // for getAccessToken()
+            // for getAccessToken()
+            new Response(200, [], '{"access_token": ' . json_encode($token) . '}'),
             new Response(200, [], '{"keys": ' . json_encode($keySet) . '}'), // for SSO JWT key set
-
-            new Response(200, [], '{"access_token": ' . json_encode($token) . '}') // for getAccessToken()
+            // for getAccessToken()
+            new Response(200, [], '{"access_token": ' . json_encode($token) . '}')
         );
 
         $this->authenticationProvider->setScopes(['scope1', 'scope2']);
@@ -281,7 +325,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testValidateAuthenticationV2_Success()
     {
@@ -289,7 +333,8 @@ class AuthenticationProviderTest extends TestCase
 
         // set responses
         $this->client->setResponse(
-            new Response(200, [], '{"access_token": ' . json_encode($token) . '}'), // for getAccessToken()
+            // for getAccessToken()
+            new Response(200, [], '{"access_token": ' . json_encode($token) . '}'),
             new Response(200, [], '{"keys": ' . json_encode($keySet) . '}') // for SSO JWT key set
         );
 
@@ -306,7 +351,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testValidateAuthenticationV2_NoSignature()
     {
@@ -314,7 +359,8 @@ class AuthenticationProviderTest extends TestCase
 
         // set responses
         $this->client->setResponse(
-            new Response(200, [], '{"access_token": ' . json_encode($token) . '}') // for getAccessToken()
+            // for getAccessToken()
+            new Response(200, [], '{"access_token": ' . json_encode($token) . '}')
         );
 
         // run
@@ -326,11 +372,15 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testValidateAuthenticationV2SuccessIssuerWithHttps()
     {
-        list($token, $keySet) = TestHelper::createTokenAndKeySet('https://localhost', 'CHARACTER:EVE:123456', []);
+        list($token, $keySet) = TestHelper::createTokenAndKeySet(
+            'https://localhost',
+            'CHARACTER:EVE:123456',
+            []
+        );
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token) . '}'),
             new Response(200, [], '{"keys": ' . json_encode($keySet) . '}')
@@ -340,7 +390,31 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws InvalidGrantException
+     */
+    public function testRefreshAccessToken_MinimalOptions_RequestException()
+    {
+        $provider = new AuthenticationProvider([
+            'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
+        ], [], $this->client, $this->logger);
+
+        $token = new AccessToken([
+            'access_token' => 'at',
+            'refresh_token' => '',
+            'expires' => 1349067601 // 2012-10-01 + 1
+        ]);
+
+        $this->client->setResponse(new TransferException('Error from Guzzle.'));
+
+        $this->expectExceptionMessage('Failed to fetch metadata.');
+
+        $provider->refreshAccessToken($token);
+    }
+
+    /**
+     * @throws Throwable
      */
     public function testRefreshAccessToken_ServerException()
     {
@@ -367,9 +441,6 @@ class AuthenticationProviderTest extends TestCase
         }
     }
 
-    /**
-     * @throws Exception
-     */
     public function testRefreshAccessToken_IdentityProviderException()
     {
         $this->client->setResponse(new Response(400, [], '{ "error": "invalid_grant" }'));
@@ -390,7 +461,7 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testRefreshAccessToken_NotExpired()
     {
@@ -400,11 +471,14 @@ class AuthenticationProviderTest extends TestCase
             'expires' => time() + 10000
         ]);
 
-        $this->assertSame('old-token', $this->authenticationProvider->refreshAccessToken($token)->getToken());
+        $this->assertSame(
+            'old-token',
+            $this->authenticationProvider->refreshAccessToken($token)->getToken()
+        );
     }
 
     /**
-     * @throws Exception
+     * @throws Throwable
      */
     public function testRefreshAccessToken_NewToken()
     {
@@ -429,8 +503,25 @@ class AuthenticationProviderTest extends TestCase
     }
 
     /**
-     * @throws Throwable
+     * @throws GuzzleException
      */
+    public function testRevokeAccessToken_MinimalOptions_RequestException()
+    {
+        $provider = new AuthenticationProvider([
+            'clientId'     => '123',
+            'clientSecret' => 'abc',
+            'redirectUri'  => 'https://localhost/callback',
+        ], [], $this->client, $this->logger);
+
+        $token = new AccessToken(['access_token' => 'at', 'refresh_token' => 'rt']);
+
+        $this->client->setResponse(new TransferException('Error from Guzzle.'));
+
+        $this->expectExceptionMessage('Failed to fetch metadata.');
+
+        $provider->revokeRefreshToken($token);
+    }
+
     public function testRevokeAccessToken_RequestError()
     {
         $this->client->setResponse(new TransferException('Error.', 543789));

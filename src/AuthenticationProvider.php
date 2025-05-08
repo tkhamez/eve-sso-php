@@ -22,7 +22,12 @@ class AuthenticationProvider
 {
     private bool $signatureVerification = true;
 
-    private GenericProvider $sso;
+    private ?GenericProvider $sso = null;
+
+    /**
+     * @var array<string, string>
+     */
+    private array $options;
 
     /**
      * Scopes for EVE SSO login.
@@ -31,17 +36,17 @@ class AuthenticationProvider
      */
     private array $scopes;
 
-    private string $clientId;
+    private ?string $clientId = null;
 
-    private string $clientSecret;
+    private ?string $clientSecret = null;
 
     private string $metadataUrl = 'https://login.eveonline.com/.well-known/oauth-authorization-server';
 
-    private string $keySetUri;
+    private ?string $keySetUri = null;
 
-    private string $revokeUrl;
+    private ?string $revokeUrl = null;
 
-    private string $issuer;
+    private ?string $issuer = null;
 
     /**
      * Cache of JSON Web Key Set.
@@ -52,7 +57,6 @@ class AuthenticationProvider
      * @param array $options See README.md
      * @param string[] $scopes Required ESI scopes.
      * @throws InvalidArgumentException If a required option is missing
-     * @throws UnexpectedValueException If EVE SSO metadata could not be fetched.
      * @see ../README.md
      */
     public function __construct(
@@ -63,16 +67,16 @@ class AuthenticationProvider
     ) {
         $this->httpClient = $httpClient ?? new Client();
 
-        $options = $this->validateOptions($options);
+        if (
+            empty($options['clientId']) ||
+            empty($options['clientSecret']) ||
+            empty($options['redirectUri'])
+        ) {
+            throw new InvalidArgumentException('At least one of the required options is not defined or empty.');
+        }
 
-        $this->sso = new GenericProvider($options, ['httpClient' => $this->httpClient]);
+        $this->options = $options;
         $this->setScopes($scopes);
-
-        $this->clientId = (string)$options['clientId'];
-        $this->clientSecret = (string)$options['clientSecret'];
-        $this->keySetUri = (string)$options['urlKeySet'];
-        $this->revokeUrl = (string)$options['urlRevoke'];
-        $this->issuer = (string)$options['issuer'];
     }
 
     public function setProvider(GenericProvider $provider): void
@@ -112,7 +116,7 @@ class AuthenticationProvider
      * Handle and validate OAuth response data from SSO v2.
      *
      * @throws UnexpectedValueException For different errors during validation.
-     * @throws LogicException If Elliptic Curve key type is not supported by OpenSSL
+     * @throws LogicException If OpenSSL does not support the elliptic curve key type.
      * @see https://github.com/esi/esi-docs/blob/master/docs/sso/validating_eve_jwt.md
      */
     public function validateAuthenticationV2(
@@ -120,6 +124,8 @@ class AuthenticationProvider
         string $sessionState,
         string $code = ''
     ): EveAuthentication {
+        $this->setOptionsAndSsoProvider();
+
         // check OAuth state parameter
         if ($requestState !== $sessionState) {
             throw new UnexpectedValueException('OAuth state mismatch.', 1526220012);
@@ -154,14 +160,17 @@ class AuthenticationProvider
         return $auth;
     }
 
+    /**
+     * @throws UnexpectedValueException If EVE SSO metadata could not be fetched.
+     */
     public function buildLoginUrl(string $state = ''): string
     {
-        $options = [
+        $this->setOptionsAndSsoProvider();
+
+        return $this->sso->getAuthorizationUrl([
             'scope' => implode(' ', $this->scopes),
             'state' => $state,
-        ];
-
-        return $this->sso->getAuthorizationUrl($options);
+        ]);
     }
 
     /**
@@ -176,11 +185,14 @@ class AuthenticationProvider
      * Refreshes the access token if necessary.
      *
      * @return AccessTokenInterface A new object if the token was refreshed
+     * @throws UnexpectedValueException If EVE SSO metadata could not be fetched.
      * @throws InvalidGrantException For "invalid_grant" error, i.e. invalid or revoked refresh token.
      * @throws RuntimeException For all other errors.
      */
     public function refreshAccessToken(AccessTokenInterface $existingToken): AccessTokenInterface
     {
+        $this->setOptionsAndSsoProvider();
+
         $newToken = null;
         if ($existingToken->getExpires() && $existingToken->hasExpired()) {
             try {
@@ -204,12 +216,15 @@ class AuthenticationProvider
     /**
      * Revokes a refresh token.
      *
-     * @throws UnexpectedValueException If revoke URL is missing or token could not be revoked.
+     * @throws UnexpectedValueException If EVE SSO metadata could not be fetched.
+     * @throws UnexpectedValueException If the token could not be revoked.
      * @throws GuzzleException Any other error.
      * @see https://github.com/esi/esi-docs/blob/master/docs/sso/revoking_refresh_tokens.md
      */
     public function revokeRefreshToken(AccessTokenInterface $existingToken): void
     {
+        $this->setOptionsAndSsoProvider();
+
         $response = $this->httpClient->request('POST', $this->revokeUrl, [
             'auth' => [$this->clientId, $this->clientSecret, 'basic'],
             'form_params' => [
@@ -226,53 +241,53 @@ class AuthenticationProvider
     }
 
     /**
-     * @throws InvalidArgumentException
      * @throws UnexpectedValueException
      */
-    private function validateOptions(array $options): array
+    private function setOptionsAndSsoProvider(): void
     {
-        if (
-            empty($options['clientId']) ||
-            empty($options['clientSecret']) ||
-            empty($options['redirectUri'])
-        ) {
-            throw new InvalidArgumentException('At least one of the required options is not defined or empty.');
-        }
-
-        if (!empty($options['urlMetadata'])) {
-            $this->metadataUrl = (string)$options['urlMetadata'];
+        if (!empty($this->options['urlMetadata'])) {
+            $this->metadataUrl = (string)$this->options['urlMetadata'];
         }
 
         if (
-            empty($options['urlAuthorize']) ||
-            empty($options['urlAccessToken']) ||
-            empty($options['urlKeySet']) ||
-            empty($options['urlRevoke']) ||
-            empty($options['issuer'])
+            empty($this->options['urlAuthorize']) ||
+            empty($this->options['urlAccessToken']) ||
+            empty($this->options['urlKeySet']) ||
+            empty($this->options['urlRevoke']) ||
+            empty($this->options['issuer'])
         ) {
+
             $metadata = $this->getMetadata();
 
-            if (empty($options['urlAuthorize'])) {
-                $options['urlAuthorize'] = $metadata['authorization_endpoint'];
+            if (empty($this->options['urlAuthorize'])) {
+                $this->options['urlAuthorize'] = $metadata['authorization_endpoint'];
             }
-            if (empty($options['urlAccessToken'])) {
-                $options['urlAccessToken'] = $metadata['token_endpoint'];
+            if (empty($this->options['urlAccessToken'])) {
+                $this->options['urlAccessToken'] = $metadata['token_endpoint'];
             }
-            if (empty($options['urlKeySet'])) {
-                $options['urlKeySet'] = $metadata['jwks_uri'];
+            if (empty($this->options['urlKeySet'])) {
+                $this->options['urlKeySet'] = $metadata['jwks_uri'];
             }
-            if (empty($options['urlRevoke'])) {
-                $options['urlRevoke'] = $metadata['revocation_endpoint'];
+            if (empty($this->options['urlRevoke'])) {
+                $this->options['urlRevoke'] = $metadata['revocation_endpoint'];
             }
-            if (empty($options['issuer'])) {
-                $options['issuer'] = $metadata['issuer'];
+            if (empty($this->options['issuer'])) {
+                $this->options['issuer'] = $metadata['issuer'];
             }
         }
 
-        // "urlResourceOwnerDetails" is required by the GenericProvider, but not used in this package.
-        $options['urlResourceOwnerDetails'] = '';
+        // "urlResourceOwnerDetails" is required by the GenericProvider class but not used in this package.
+        $this->options['urlResourceOwnerDetails'] = '';
 
-        return $options;
+        // Note: This throws an InvalidArgumentException if a required option is missing, but that's
+        // not the case here.
+        $this->sso = new GenericProvider($this->options, ['httpClient' => $this->httpClient]);
+
+        $this->clientId = (string)$this->options['clientId'];
+        $this->clientSecret = (string)$this->options['clientSecret'];
+        $this->keySetUri = (string)$this->options['urlKeySet'];
+        $this->revokeUrl = (string)$this->options['urlRevoke'];
+        $this->issuer = (string)$this->options['issuer'];
     }
 
     private function verifyScopes(array $scopes): bool
@@ -291,8 +306,7 @@ class AuthenticationProvider
      */
     private function getMetadata(): array
     {
-        // This is only called once via constructor.
-
+        // This is only called once if any of the options are missing.
         try {
             $response = $this->httpClient->request('GET', $this->metadataUrl);
         } catch (GuzzleException $e) {

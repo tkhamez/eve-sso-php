@@ -2,10 +2,16 @@
 
 ## 6.0.0
 
+(unreleased)
+
 Breaking changes:
-- Fix: Reset scopes if setScopes() is called a second time instead of adding new scopes.
+- Scopes are now reset if setScopes() is called instead of adding the new scopes.
+- The methods validateAuthenticationV2, buildLoginUrl, refreshAccessToken and revokeRefreshToken
+  can now throw an UnexpectedValueException.
 
 Other changes:
+- Improvement: The metadata URL is no longer called when the AuthenticationProvider object is created.
+- Change: The constructor no longer throws an UnexpectedValueException.
 - Fix: Catch \Throwable instead of \Exception from AbstractProvider->getAccessToken().
 
 ## 5.1.0

@@ -4,7 +4,7 @@
 
 # EVE Online SSO
 
-PHP package supporting [EVE Online SSO v2](https://docs.esi.evetech.net/docs/sso/) (flow for web based applications)
+PHP package supporting [EVE Online SSO v2](https://docs.esi.evetech.net/docs/sso/) (flow for web-based applications)
 including JWT signature verification.
 
 ## Install
@@ -18,9 +18,8 @@ composer require tkhamez/eve-sso
 ## Example Usage
 
 ```php
-// Initiate provider object
-// (if you do not provide all optional URLs this will make a request to the metadata URL to
-// get them).
+// Initiate the provider object (if you do not provide all optional URLs, a request will be made
+// to the metadata URL to get them).
 try {
     $provider = new Eve\Sso\AuthenticationProvider(
         [
@@ -41,7 +40,7 @@ try {
         // Add all required scopes.
         ['esi-mail.read_mail.v1', 'esi-skills.read_skills.v1'],
     
-        // Optionally use your own HTTP client.
+        // Optionally, use your own HTTP client.
         httpClient: new GuzzleHttp\Client(),
     
         // Optionally add a logger to log exception that are caught from libraries
