@@ -4,8 +4,8 @@
 
 # EVE Online SSO
 
-PHP package supporting [EVE Online SSO v2](https://docs.esi.evetech.net/docs/sso/) (flow for web-based applications)
-including JWT signature verification.
+PHP package supporting [EVE Online SSO v2](https://developers.eveonline.com/docs/services/sso/) 
+for web applications including JWT signature verification.
 
 ## Install
 
@@ -17,40 +17,38 @@ composer require tkhamez/eve-sso
 
 ## Example Usage
 
+These examples do not include error handling. Most methods throw exceptions which should be caught.
+
 ```php
-// Initiate the provider object (if you do not provide all optional URLs, a request will be made
-// to the metadata URL to get them).
-try {
-    $provider = new Eve\Sso\AuthenticationProvider(
-        [
-            // required
-            'clientId'       => 'your-EVE-app-client-ID',
-            'clientSecret'   => 'your-EVE-app-secret-key',
-            'redirectUri'    => 'https://your-callback.url',
-    
-            // optional
-            'urlAuthorize'   => 'https://login.eveonline.com/v2/oauth/authorize',
-            'urlAccessToken' => 'https://login.eveonline.com/v2/oauth/token',
-            'urlRevoke'      => 'https://login.eveonline.com/v2/oauth/revoke',
-            'urlKeySet'      => 'https://login.eveonline.com/oauth/jwks',
-            'issuer'         => 'https://login.eveonline.com',
-            'urlMetadata' => 'https://login.eveonline.com/.well-known/oauth-authorization-server',
-        ],
-    
-        // Add all required scopes.
-        ['esi-mail.read_mail.v1', 'esi-skills.read_skills.v1'],
-    
-        // Optionally, use your own HTTP client.
-        httpClient: new GuzzleHttp\Client(),
-    
-        // Optionally add a logger to log exception that are caught from libraries
-        // (any class implementing Psr\Log\LoggerInterface, the example uses monolog/monolog
-        // which is not included in this package).
-        logger: new Monolog\Logger('SSO', [new Monolog\Handler\StreamHandler('/path/to/logfile')])
-    );
-} catch (Exception $e) {
-    echo $e->getMessage();
-}
+// Initiate the provider object.
+$provider = new Eve\Sso\AuthenticationProvider(
+    [
+        // Required.
+        'clientId'       => 'your-EVE-app-client-ID',
+        'clientSecret'   => 'your-EVE-app-secret-key',
+        'redirectUri'    => 'https://your-callback.url',
+
+        // Optional. If you do not provide all URLs, a request will be made
+        // to the metadata URL to get them.
+        'urlAuthorize'   => 'https://login.eveonline.com/v2/oauth/authorize',
+        'urlAccessToken' => 'https://login.eveonline.com/v2/oauth/token',
+        'urlRevoke'      => 'https://login.eveonline.com/v2/oauth/revoke',
+        'urlKeySet'      => 'https://login.eveonline.com/oauth/jwks',
+        'issuer'         => 'https://login.eveonline.com',
+        'urlMetadata' => 'https://login.eveonline.com/.well-known/oauth-authorization-server',
+    ],
+
+    // Optionally, add all required scopes.
+    ['esi-mail.read_mail.v1', 'esi-skills.read_skills.v1'],
+
+    // Optionally, use your own HTTP client.
+    httpClient: new GuzzleHttp\Client(),
+
+    // Optionally add a logger to log exception that are caught from libraries
+    // (any class implementing Psr\Log\LoggerInterface, the example uses monolog/monolog
+    // which is not included in this package).
+    logger: new Monolog\Logger('SSO', [new Monolog\Handler\StreamHandler('/path/to/logfile')])
+);
 
 // Optionally disable signature verification.
 $provider->setSignatureVerification(false);
@@ -67,17 +65,18 @@ header("Location: $loginUrl");
 ```php
 // Callback URL
 session_start();
-try {
-    $auth = $provider->validateAuthenticationV2($_GET['state'], $_SESSION['state'], $_GET['code']);
-} catch (Exception $e) {
-    echo $e->getMessage();
-}
+$eveAuthentication = $provider->validateAuthenticationV2(
+    $_GET['state'] ?? '', 
+    $_SESSION['state'] ?? '', 
+    $_GET['code'] ?? '',
+);
+unset($_SESSION['state']);
 
-// Store the token data somewhere
-$refreshToken = $auth->getToken()->getRefreshToken();
-$accessToken = $auth->getToken()->getToken();
-$expires = $auth->getToken()->getExpires();
-// ...
+$characterId = $eveAuthentication->getCharacterId();
+$refreshToken = $eveAuthentication->getToken()->getRefreshToken();
+$accessToken = $eveAuthentication->getToken()->getToken();
+$expires = $eveAuthentication->getToken()->getExpires();
+// ... store the token data somewhere together with the character ID.
 ```
 
 ```php
@@ -87,14 +86,10 @@ $existingToken = new League\OAuth2\Client\Token\AccessToken([
     'access_token' => $accessToken,
     'expires' => $expires,
 ]);
-try {
-    $token = $provider->refreshAccessToken($existingToken);
-} catch (Exception $e) {
-    echo $e->getMessage();
-}
+$validToken = $provider->refreshAccessToken($existingToken);
 ```
 
-## Dev Env
+## Development Environment
 
 ```shell
 docker build --tag eve-sso .
