@@ -1,6 +1,9 @@
+[![Latest Stable Version](http://poser.pugx.org/tkhamez/eve-sso/v)](https://packagist.org/packages/tkhamez/eve-sso) 
+[![Total Downloads](http://poser.pugx.org/tkhamez/eve-sso/downloads)](https://packagist.org/packages/tkhamez/eve-sso) 
+[![License](http://poser.pugx.org/tkhamez/eve-sso/license)](https://packagist.org/packages/tkhamez/eve-sso) 
+[![PHP Version Require](http://poser.pugx.org/tkhamez/eve-sso/require/php)](https://packagist.org/packages/tkhamez/eve-sso)
 [![build](https://github.com/tkhamez/eve-sso-php/workflows/test/badge.svg)](https://github.com/tkhamez/eve-sso-php/actions)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/d607d04898a6f8500b99/test_coverage)](https://codeclimate.com/github/tkhamez/eve-sso-php/test_coverage)
-[![Packagist Downloads](https://img.shields.io/packagist/dt/tkhamez/eve-sso)](https://packagist.org/packages/tkhamez/eve-sso)
 
 # EVE Online SSO
 
@@ -44,7 +47,7 @@ $provider = new Eve\Sso\AuthenticationProvider(
     // Optionally, use your own HTTP client.
     httpClient: new GuzzleHttp\Client(),
 
-    // Optionally add a logger to log exception that are caught from libraries
+    // Optionally add a logger to log exceptions that are caught from libraries
     // (any class implementing Psr\Log\LoggerInterface, the example uses monolog/monolog
     // which is not included in this package).
     logger: new Monolog\Logger('SSO', [new Monolog\Handler\StreamHandler('/path/to/logfile')])
