@@ -3,7 +3,6 @@
 [![License](http://poser.pugx.org/tkhamez/eve-sso/license)](https://packagist.org/packages/tkhamez/eve-sso) 
 [![PHP Version Require](http://poser.pugx.org/tkhamez/eve-sso/require/php)](https://packagist.org/packages/tkhamez/eve-sso)
 [![build](https://github.com/tkhamez/eve-sso-php/workflows/test/badge.svg)](https://github.com/tkhamez/eve-sso-php/actions)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/d607d04898a6f8500b99/test_coverage)](https://codeclimate.com/github/tkhamez/eve-sso-php/test_coverage)
 
 # EVE Online SSO
 
