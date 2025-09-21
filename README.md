@@ -4,9 +4,9 @@
 [![PHP Version Require](http://poser.pugx.org/tkhamez/eve-sso/require/php)](https://packagist.org/packages/tkhamez/eve-sso)
 [![build](https://github.com/tkhamez/eve-sso-php/workflows/test/badge.svg)](https://github.com/tkhamez/eve-sso-php/actions)
 
-# EVE Online SSO
+# EVE-SSO
 
-PHP package supporting [EVE Online SSO v2](https://developers.eveonline.com/docs/services/sso/) 
+A PHP library supporting [EVE Online SSO v2](https://developers.eveonline.com/docs/services/sso/) 
 for web applications including JWT signature verification.
 
 ## Install
