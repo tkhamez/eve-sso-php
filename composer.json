@@ -1,6 +1,6 @@
 {
     "name": "tkhamez/eve-sso",
-    "description": "EVE Online - SSO",
+    "description": "Library supporting EVE Online SSO",
     "type": "library",
     "license": "MIT",
     "require": {

@@ -4,7 +4,7 @@
 [![PHP Version Require](http://poser.pugx.org/tkhamez/eve-sso/require/php)](https://packagist.org/packages/tkhamez/eve-sso)
 [![build](https://github.com/tkhamez/eve-sso-php/workflows/test/badge.svg)](https://github.com/tkhamez/eve-sso-php/actions)
 
-# EVE-SSO
+# EVE SSO for PHP
 
 A PHP library supporting [EVE Online SSO v2](https://developers.eveonline.com/docs/services/sso/) 
 for web applications including JWT signature verification.
@@ -37,7 +37,7 @@ $provider = new Eve\Sso\AuthenticationProvider(
         'urlRevoke'      => 'https://login.eveonline.com/v2/oauth/revoke',
         'urlKeySet'      => 'https://login.eveonline.com/oauth/jwks',
         'issuer'         => 'https://login.eveonline.com',
-        'urlMetadata' => 'https://login.eveonline.com/.well-known/oauth-authorization-server',
+        'urlMetadata'    => 'https://login.eveonline.com/.well-known/oauth-authorization-server',
     ],
 
     // Optionally, add all required scopes.
