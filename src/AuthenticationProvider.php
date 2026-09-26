@@ -202,7 +202,7 @@ class AuthenticationProvider
                 );
             } catch (Throwable $e) {
                 if ($e instanceof IdentityProviderException && $e->getMessage() === 'invalid_grant') {
-                    // invalid_grant = e. g. invalid or revoked refresh token
+                    // invalid_grant = e.g. invalid or revoked refresh token
                     throw new InvalidGrantException(previous: $e);
                 } else {
                     throw new RuntimeException($e->getMessage(), previous: $e);

@@ -9,11 +9,13 @@ use Eve\Sso\InvalidGrantException;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Token\AccessToken;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\RequestInterface;
 use RuntimeException;
 use Throwable;
 use UnexpectedValueException;
@@ -25,6 +27,8 @@ class AuthenticationProviderTest extends TestCase
     private TestLogger $logger;
 
     private AuthenticationProvider $authenticationProvider;
+
+    private RequestInterface $request;
 
     public function setUp(): void
     {
@@ -47,6 +51,7 @@ class AuthenticationProviderTest extends TestCase
             $this->client,
             $this->logger
         );
+        $this->request = new Request('GET', '/');
     }
 
     public function testConstruct_MinimalOptions()
@@ -111,7 +116,7 @@ class AuthenticationProviderTest extends TestCase
             'redirectUri'  => 'https://localhost/callback',
         ], [], $this->client, $this->logger);
 
-        $this->client->setResponse(new TransferException('Error from Guzzle.'));
+        $this->client->setResponse(new TransferException('Error from Guzzle.', $this->request));
 
         try {
             $provider->buildLoginUrl('state123');
@@ -181,7 +186,7 @@ class AuthenticationProviderTest extends TestCase
             'redirectUri'  => 'https://localhost/callback',
         ], [], $this->client, $this->logger);
 
-        $this->client->setResponse(new TransferException('Error from Guzzle.'));
+        $this->client->setResponse(new TransferException('Error from Guzzle.', $this->request));
 
         $this->expectExceptionMessage('Failed to fetch metadata.');
 
@@ -223,7 +228,7 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_ExceptionValidateJWTokenWrongIssuer()
     {
-        list($token) = TestHelper::createTokenAndKeySet('invalid.host');
+        [$token] = TestHelper::createTokenAndKeySet('invalid.host');
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token). '}')
         );
@@ -246,7 +251,7 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_ExceptionWrongScopes()
     {
-        list($token, $keySet) = TestHelper::createTokenAndKeySet();
+        [$token, $keySet] = TestHelper::createTokenAndKeySet();
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
             new Response(200, [], '{"keys": ' . json_encode($keySet) . '}')
@@ -266,10 +271,10 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_ExceptionPublicKeysGetError()
     {
-        list($token) = TestHelper::createTokenAndKeySet();
+        [$token] = TestHelper::createTokenAndKeySet();
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
-            new TransferException('Failed to parse public keys.', 1526220032)
+            new TransferException('Failed to parse public keys.', $this->request, 1526220032)
         );
 
         try {
@@ -288,7 +293,7 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_ExceptionPublicKeysParseError()
     {
-        list($token) = TestHelper::createTokenAndKeySet();
+        [$token] = TestHelper::createTokenAndKeySet();
         $this->client->setResponse(
             new Response(200, [], '{"access_token": ' . json_encode($token). '}'),
             new Response(200, [], 'no json')
@@ -306,7 +311,7 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_PublicKeysCache()
     {
-        list($token, $keySet) = TestHelper::createTokenAndKeySet(); // issuer = localhost
+        [$token, $keySet] = TestHelper::createTokenAndKeySet(); // issuer = localhost
 
         $this->client->setResponse(
             // for getAccessToken()
@@ -329,7 +334,7 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_Success()
     {
-        list($token, $keySet) = TestHelper::createTokenAndKeySet(); // issuer = localhost
+        [$token, $keySet] = TestHelper::createTokenAndKeySet(); // issuer = localhost
 
         // set responses
         $this->client->setResponse(
@@ -355,7 +360,7 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2_NoSignature()
     {
-        list($token) = TestHelper::createTokenAndKeySet('localhost', 'CHARACTER:EVE:123', []);
+        [$token] = TestHelper::createTokenAndKeySet('localhost', 'CHARACTER:EVE:123', []);
 
         // set responses
         $this->client->setResponse(
@@ -376,7 +381,7 @@ class AuthenticationProviderTest extends TestCase
      */
     public function testValidateAuthenticationV2SuccessIssuerWithHttps()
     {
-        list($token, $keySet) = TestHelper::createTokenAndKeySet(
+        [$token, $keySet] = TestHelper::createTokenAndKeySet(
             'https://localhost',
             'CHARACTER:EVE:123456',
             []
@@ -406,7 +411,7 @@ class AuthenticationProviderTest extends TestCase
             'expires' => 1349067601 // 2012-10-01 + 1
         ]);
 
-        $this->client->setResponse(new TransferException('Error from Guzzle.'));
+        $this->client->setResponse(new TransferException('Error from Guzzle.', $this->request));
 
         $this->expectExceptionMessage('Failed to fetch metadata.');
 
@@ -515,7 +520,7 @@ class AuthenticationProviderTest extends TestCase
 
         $token = new AccessToken(['access_token' => 'at', 'refresh_token' => 'rt']);
 
-        $this->client->setResponse(new TransferException('Error from Guzzle.'));
+        $this->client->setResponse(new TransferException('Error from Guzzle.', $this->request));
 
         $this->expectExceptionMessage('Failed to fetch metadata.');
 
@@ -524,7 +529,7 @@ class AuthenticationProviderTest extends TestCase
 
     public function testRevokeAccessToken_RequestError()
     {
-        $this->client->setResponse(new TransferException('Error.', 543789));
+        $this->client->setResponse(new TransferException('Error.', $this->request, 543789));
 
         $token = new AccessToken(['access_token' => 'at', 'refresh_token' => 'rt']);
 
