@@ -2,6 +2,8 @@
 
 ## 6.1.0
 
+September 26, 2026
+
 - Compatibility with Guzzle HTTP client version 8
 
 ## 6.0.0
