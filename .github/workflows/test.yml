@@ -7,7 +7,17 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        php-versions: ['8.1', '8.2', '8.3', '8.4', '8.5']
+        include:
+          - php-version: '8.1'
+            guzzle: '^7.7'
+          - php-version: '8.2'
+            guzzle: '^7.7'
+          - php-version: '8.3'
+            guzzle: '^7.7'
+          - php-version: '8.4'
+            guzzle: '^8.0'
+          - php-version: '8.5'
+            guzzle: '^8.0'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -19,5 +29,8 @@ jobs:
           tools: composer:v2
       - name: Install
         run: composer install
+      - name: Use Guzzle 7
+        if: matrix.guzzle == '^7.7'
+        run: composer update "guzzlehttp/guzzle:^7.7" --with-all-dependencies --no-interaction
       - name: Test
         run: vendor/bin/phpunit

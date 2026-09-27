@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Test;
 
 use Exception;
+use GuzzleHttp\Exception\TransferException;
+use GuzzleHttp\Psr7\Request;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\RS256;
@@ -43,5 +45,17 @@ class TestHelper
         $keySet = [$jwk->toPublic()->jsonSerialize()];
 
         return [$token, $keySet];
+    }
+
+    /**
+     * Guzzle >= 8 requires a RequestInterface in the TransferException
+     * constructor; Guzzle 7 uses the standard Exception constructor
+     * (message, code, previous).
+     */
+    public static function transferException(string $message, int $code = 0): TransferException
+    {
+        return method_exists(TransferException::class, 'getRequest')
+            ? new TransferException($message, new Request('GET', '/'), $code)
+            : new TransferException($message, $code);
     }
 }
